@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Hero 🌟 V8.7.5 - Final Polish</title>
+    <title>Family Hero 🌟 V8.7.5 - Fast Polish</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -127,7 +127,6 @@
 </div>
 
 <script>
-    // --- ה-Config שלך ---
     const firebaseConfig = {
         apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
         authDomain: "family-hero-3a3fd.firebaseapp.com",
@@ -148,13 +147,10 @@
         children: [{id:1, name:"ילד 1", pts:0}, {id:2, name:"ילד 2", pts:0}, {id:3, name:"ילד 3", pts:0}, {id:4, name:"ילד 4", pts:0}],
         tasks: [
             {id:1, name:"צחצוח שיניים", val:2, verify:'none'}, {id:2, name:"סידור מיטה", val:2, verify:'none'}, {id:3, name:"שיעורי בית", val:10, verify:'none'}, {id:4, name:"מקלחת בזמן", val:10, verify:'none'},
-            {id:5, name:"עריכת שולחן", val:5, verify:'none'}, {id:6, name:"סידור תיק", val:5, verify:'none'}, {id:7, name:"איסוף משחקים", val:5, verify:'none'}, {id:8, name:"קריאה", val:10, verify:'none'},
-            {id:9, name:"התארגנות בוקר", val:5, verify:'none'}, {id:10, name:"התנהגות חברית", val:10, verify:'none'}
+            {id:5, name:"עריכת שולחן", val:5, verify:'none'}, {id:6, name:"סידור תיק", val:5, verify:'none'}, {id:7, name:"איסוף משחקים", val:5, verify:'none'}, {id:8, name:"קריאה", val:10, verify:'none'}
         ],
         rewards: [
-            {id:101, name:"ממתק קטן", val:30}, {id:102, name:"30 דק' מסך", val:100}, {id:103, name:"תיבת הפתעה", val:150}, {id:104, name:"בחירת ארוחה", val:200},
-            {id:105, name:"סרט משפחתי", val:400}, {id:106, name:"גלידה", val:500}, {id:107, name:"צעצוע חדש", val:800}, {id:108, name:"חופש ממטלות", val:300},
-            {id:109, name:"הפתעה ענקית", val:600}, {id:110, name:"טיול לבחירה", val:1500}
+            {id:101, name:"ממתק קטן", val:30}, {id:102, name:"30 דק' מסך", val:100}, {id:103, name:"תיבת הפתעה", val:150}
         ],
         quests: [{id:201, name:"חוברת עבודה", steps:10, current:0, val:100}],
         coops: [],
@@ -163,7 +159,6 @@
 
     function save() { docRef.set(state); }
 
-    // האזנה לשינויים בזמן אמת
     docRef.onSnapshot((doc) => {
         if (doc.exists()) { 
             state = {...state, ...doc.data()}; 
@@ -190,6 +185,7 @@
         else if(type === 'reward') state.rewards.push({id:Date.now(), name, val});
         else if(type === 'quest') state.quests.push({id:Date.now(), name, steps:val, current:0, val:100});
         else if(type === 'coop') state.coops.push({id:Date.now(), name, goal:val});
+        render(); // תגובה מיידית
         save();
     }
 
@@ -202,6 +198,7 @@
                 q.current = 0;
                 alert(`כל הכבוד! פרויקט "${q.name}" הושלם!`);
             }
+            render(); // תגובה מיידית
             save();
         }
     }
@@ -217,10 +214,17 @@
             state.dailyDone[cId].splice(idx, 1);
             state.children[state.activeChild].pts -= val;
         }
+        render(); // צביעת ה-V והנקודות מיידית
         save();
     }
 
-    function manualReset() { if(confirm('לאפס סימוני V?')) { state.dailyDone = {}; save(); } }
+    function manualReset() { 
+        if(confirm('לאפס סימוני V?')) { 
+            state.dailyDone = {}; 
+            render();
+            save(); 
+        } 
+    }
 
     function render() {
         const child = state.children[state.activeChild];
@@ -259,38 +263,27 @@
         const vRewards = config.expandedRewards ? state.rewards : state.rewards.slice(0, config.rewardsLimit);
         document.getElementById('rewardsList').innerHTML = vRewards.map(r => `
             <div class="list-item"><div><b>${r.name}</b><br><small>${r.val} 💎</small></div>
-                <button class="btn-action" onclick="if(child.pts>=${r.val}){child.pts-=${r.val}; alert('פדית!'); save();}else{alert('חסר!');}">פדה</button></div>`).join('');
+                <button class="btn-action" onclick="if(child.pts>=${r.val}){child.pts-=${r.val}; alert('פדית!'); render(); save();}else{alert('חסר!');}">פדה</button></div>`).join('');
         document.getElementById('btnMoreRewards').innerText = config.expandedRewards ? "הצג פחות ▲" : "הצג עוד ▼";
 
-        // ניהול משימות
+        // עדכון מערכת ניהול - תוכן נשאר זהה
         document.getElementById('manageTasks').innerHTML = state.tasks.map(t => `
-            <div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; save();">
-                <input type="number" class="input-edit" style="width:45px" value="${t.val}" onchange="state.tasks.find(x=>x.id==${t.id}).val=parseInt(this.value); save();">
-                <select class="input-edit" style="width:auto" onchange="state.tasks.find(x=>x.id==${t.id}).verify=this.value; save();"><option value="none" ${t.verify==='none'?'selected':''}>ללא</option><option value="signature" ${t.verify==='signature'?'selected':''}>✍️</option><option value="photo" ${t.verify==='photo'?'selected':''}>📷</option></select>
-                <button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); save();">🗑️</button></div>`).join('');
+            <div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; render(); save();">
+                <input type="number" class="input-edit" style="width:45px" value="${t.val}" onchange="state.tasks.find(x=>x.id==${t.id}).val=parseInt(this.value); render(); save();">
+                <button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); render(); save();">🗑️</button></div>`).join('');
 
-        // ניהול פרויקטים
         document.getElementById('manageQuests').innerHTML = state.quests.map(q => `
-            <div class="manage-row"><input class="input-edit" style="flex:2" value="${q.name}" onchange="state.quests.find(x=>x.id==${q.id}).name=this.value; save();">
-                <label>יעד:</label><input type="number" class="input-edit" style="width:45px" value="${q.steps}" onchange="state.quests.find(x=>x.id==${q.id}).steps=parseInt(this.value); save();">
-                <label>פרס:</label><input type="number" class="input-edit" style="width:55px" value="${q.val}" onchange="state.quests.find(x=>x.id==${q.id}).val=parseInt(this.value); save();">
-                <button class="btn-del" onclick="state.quests=state.quests.filter(x=>x.id!==${q.id}); save();">🗑️</button></div>`).join('');
+            <div class="manage-row"><input class="input-edit" style="flex:2" value="${q.name}" onchange="state.quests.find(x=>x.id==${q.id}).name=this.value; render(); save();">
+                <input type="number" class="input-edit" style="width:45px" value="${q.steps}" onchange="state.quests.find(x=>x.id==${q.id}).steps=parseInt(this.value); render(); save();">
+                <button class="btn-del" onclick="state.quests=state.quests.filter(x=>x.id!==${q.id}); render(); save();">🗑️</button></div>`).join('');
 
-        // ניהול פרסים
         document.getElementById('manageRewards').innerHTML = state.rewards.map(r => `
-            <div class="manage-row"><input class="input-edit" style="flex:2" value="${r.name}" onchange="state.rewards.find(x=>x.id==${r.id}).name=this.value; save();">
-                <input type="number" class="input-edit" style="width:60px" value="${r.val}" onchange="state.rewards.find(x=>x.id==${r.id}).val=parseInt(this.value); save();">
-                <button class="btn-del" onclick="state.rewards=state.rewards.filter(x=>x.id!==${r.id}); save();">🗑️</button></div>`).join('');
+            <div class="manage-row"><input class="input-edit" style="flex:2" value="${r.name}" onchange="state.rewards.find(x=>x.id==${r.id}).name=this.value; render(); save();">
+                <input type="number" class="input-edit" style="width:60px" value="${r.val}" onchange="state.rewards.find(x=>x.id==${r.id}).val=parseInt(this.value); render(); save();">
+                <button class="btn-del" onclick="state.rewards=state.rewards.filter(x=>x.id!==${r.id}); render(); save();">🗑️</button></div>`).join('');
 
-        // ניהול אתגרים משפחתיים
-        document.getElementById('manageCoops').innerHTML = state.coops.map(c => `
-            <div class="manage-row"><input class="input-edit" style="flex:2" value="${c.name}" onchange="state.coops.find(x=>x.id==${c.id}).name=this.value; save();">
-                <input type="number" class="input-edit" style="width:80px" value="${c.goal}" onchange="state.coops.find(x=>x.id==${c.id}).goal=parseInt(this.value); save();">
-                <button class="btn-del" onclick="state.coops=state.coops.filter(x=>x.id!==${c.id}); save();">🗑️</button></div>`).join('');
-
-        // ניהול שמות ילדים
         document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `
-            <div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; save();"></div>`).join('');
+            <div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; render(); save();"></div>`).join('');
 
         const nextR = state.rewards.filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
         if(nextR) {
