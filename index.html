@@ -163,9 +163,12 @@
 
     function save() { docRef.set(state); }
 
+    // האזנה לשינויים בזמן אמת
     docRef.onSnapshot((doc) => {
-        if (doc.exists()) { state = {...state, ...doc.data()}; render(); } 
-        else { save(); }
+        if (doc.exists()) { 
+            state = {...state, ...doc.data()}; 
+            render(); 
+        } else { save(); }
     });
 
     function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
@@ -259,28 +262,33 @@
                 <button class="btn-action" onclick="if(child.pts>=${r.val}){child.pts-=${r.val}; alert('פדית!'); save();}else{alert('חסר!');}">פדה</button></div>`).join('');
         document.getElementById('btnMoreRewards').innerText = config.expandedRewards ? "הצג פחות ▲" : "הצג עוד ▼";
 
+        // ניהול משימות
         document.getElementById('manageTasks').innerHTML = state.tasks.map(t => `
             <div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; save();">
                 <input type="number" class="input-edit" style="width:45px" value="${t.val}" onchange="state.tasks.find(x=>x.id==${t.id}).val=parseInt(this.value); save();">
                 <select class="input-edit" style="width:auto" onchange="state.tasks.find(x=>x.id==${t.id}).verify=this.value; save();"><option value="none" ${t.verify==='none'?'selected':''}>ללא</option><option value="signature" ${t.verify==='signature'?'selected':''}>✍️</option><option value="photo" ${t.verify==='photo'?'selected':''}>📷</option></select>
                 <button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); save();">🗑️</button></div>`).join('');
 
+        // ניהול פרויקטים
         document.getElementById('manageQuests').innerHTML = state.quests.map(q => `
             <div class="manage-row"><input class="input-edit" style="flex:2" value="${q.name}" onchange="state.quests.find(x=>x.id==${q.id}).name=this.value; save();">
                 <label>יעד:</label><input type="number" class="input-edit" style="width:45px" value="${q.steps}" onchange="state.quests.find(x=>x.id==${q.id}).steps=parseInt(this.value); save();">
                 <label>פרס:</label><input type="number" class="input-edit" style="width:55px" value="${q.val}" onchange="state.quests.find(x=>x.id==${q.id}).val=parseInt(this.value); save();">
                 <button class="btn-del" onclick="state.quests=state.quests.filter(x=>x.id!==${q.id}); save();">🗑️</button></div>`).join('');
 
+        // ניהול פרסים
         document.getElementById('manageRewards').innerHTML = state.rewards.map(r => `
             <div class="manage-row"><input class="input-edit" style="flex:2" value="${r.name}" onchange="state.rewards.find(x=>x.id==${r.id}).name=this.value; save();">
                 <input type="number" class="input-edit" style="width:60px" value="${r.val}" onchange="state.rewards.find(x=>x.id==${r.id}).val=parseInt(this.value); save();">
                 <button class="btn-del" onclick="state.rewards=state.rewards.filter(x=>x.id!==${r.id}); save();">🗑️</button></div>`).join('');
 
+        // ניהול אתגרים משפחתיים
         document.getElementById('manageCoops').innerHTML = state.coops.map(c => `
             <div class="manage-row"><input class="input-edit" style="flex:2" value="${c.name}" onchange="state.coops.find(x=>x.id==${c.id}).name=this.value; save();">
                 <input type="number" class="input-edit" style="width:80px" value="${c.goal}" onchange="state.coops.find(x=>x.id==${c.id}).goal=parseInt(this.value); save();">
                 <button class="btn-del" onclick="state.coops=state.coops.filter(x=>x.id!==${c.id}); save();">🗑️</button></div>`).join('');
 
+        // ניהול שמות ילדים
         document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `
             <div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; save();"></div>`).join('');
 
