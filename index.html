@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V13.1</title>
+   <title>Family Hero 🌟 V13.2</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -14,11 +14,37 @@
            --coop: #00cec9; --loot: #f1c40f; --accent: #fdcb6e;
            --bg: #f8f9fa; --text: #2d3436; --danger: #ff7675;
        }
+       
+       /* מצב לילה - משפיע רק על ממשק הילד */
        body.dark-mode { --bg: #2d3436; --text: #dfe6e9; --primary: #a29bfe; }
-       body.dark-mode .list-item, body.dark-mode .child-tab, body.dark-mode .panel, body.dark-mode .sub-panel, body.dark-mode .stats-card { 
+       body.dark-mode .list-item, 
+       body.dark-mode .child-tab, 
+       body.dark-mode .stats-card { 
            background: #353b48; color: white; border-color: #4b4b4b; 
        }
        
+       /* קיבוע ממשק ההורה למצב בהיר תמיד */
+       #adminWrapper { 
+           background: #f1f2f6; 
+           color: #2d3436 !important; 
+           padding: 15px; 
+           border-radius: 20px; 
+           margin-top: 30px; 
+           border: 2px solid #ddd;
+       }
+       #adminWrapper .panel, 
+       #adminWrapper .sub-panel, 
+       #adminWrapper .accordion, 
+       #adminWrapper .sub-accordion, 
+       #adminWrapper .manage-row,
+       #adminWrapper input,
+       #adminWrapper select { 
+           background: white !important; 
+           color: #2d3436 !important; 
+           border: 1px solid #ddd !important;
+       }
+       #adminWrapper .accordion, #adminWrapper .sub-accordion { background: #e1e1e1 !important; }
+
        body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.5s; }
        .container { max-width: 1100px; margin: 0 auto; }
        
@@ -41,10 +67,10 @@
        .bar-bg { width: 100%; height: 12px; background: rgba(0,0,0,0.1); border-radius: 10px; margin: 8px 0; overflow: hidden; }
        .bar-fill { height: 100%; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 20px; display: flex; justify-content: space-between; }
-       .panel { display: none; padding: 15px; background: white; border: 1px solid #ddd; border-radius: 0 0 12px 12px; }
-       .sub-accordion { background: #f9f9f9; padding: 10px; width: 100%; border: 1px solid #eee; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-weight: bold; text-align: right; }
-       .sub-panel { display: none; padding: 10px; border: 1px solid #eee; margin-bottom: 10px; border-radius: 8px; }
+       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 10px; display: flex; justify-content: space-between; }
+       .panel { display: none; padding: 15px; border-radius: 0 0 12px 12px; }
+       .sub-accordion { background: #f9f9f9; padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-weight: bold; text-align: right; }
+       .sub-panel { display: none; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
        .manage-row { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
        .input-edit { padding: 6px; border-radius: 5px; border: 1px solid #ddd; flex: 1; min-width: 100px; }
        
@@ -89,17 +115,19 @@
        </div>
    </div>
 
+   <!-- תפריט הניהול שתמיד נשאר בהיר -->
    <div id="adminWrapper">
-       <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול הורים מלא <span>▼</span></button>
+       <h3 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">⚙️ ממשק הורה - תמיד יום</h3>
+       <button class="accordion" onclick="toggleAcc(this)">ניהול תוכן והגדרות <span>▼</span></button>
        <div class="panel">
            
            <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן חדש <span>▼</span></div>
            <div class="sub-panel">
                <div style="display:flex; gap:5px; flex-wrap:wrap;">
                    <select id="addType"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">אתגר משפחתי</option></select>
-                   <input type="text" id="addName" placeholder="שם..." style="flex:2;">
+                   <input type="text" id="addName" placeholder="שם...">
                    <input type="number" id="addVal" placeholder="ערך" style="width:60px;">
-                   <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:5px;">שמור</button>
+                   <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">שמור</button>
                </div>
            </div>
 
@@ -129,6 +157,7 @@
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
+   // Firebase Config (נשאר אותו דבר)
    const firebaseConfig = {
        apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
        authDomain: "family-hero-3a3fd.firebaseapp.com",
@@ -165,6 +194,7 @@
 
    function checkMode() {
        const h = new Date().getHours();
+       // מצב לילה בין 19:00 ל-07:00
        document.getElementById('mainBody').classList.toggle('dark-mode', h>=19 || h<7);
    }
 
@@ -172,13 +202,12 @@
        if(!state.children || !state.children[state.activeChild]) return;
        const child = state.children[state.activeChild];
        const done = state.dailyDone[child.id] || [];
-       const totalFamPts = state.children.reduce((a,b)=>a+(b.pts||0),0);
+       const totalFamPts = (state.children||[]).reduce((a,b)=>a+(b.pts||0),0);
 
        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
        document.getElementById('activePoints').innerText = child.pts;
        document.getElementById('activeNameDisplay').innerText = child.name;
 
-       // לוגיקת בונוס
        const bonusBtn = document.getElementById('dailyWheel');
        const progressText = document.getElementById('bonusProgressText');
        const today = new Date().toDateString();
@@ -199,8 +228,7 @@
            renderAdminPanels();
        }
 
-       // משימות
-       document.getElementById('tasksList').innerHTML = state.tasks.map(t => {
+       document.getElementById('tasksList').innerHTML = (state.tasks||[]).map(t => {
            const isDone = done.includes(t.id);
            const hasImg = state.proofs && state.proofs[child.id+"_"+t.id];
            return `<div class="list-item ${isDone?'completed':''}">
@@ -212,7 +240,6 @@
            </div>`;
        }).join('');
 
-       // פרויקטים
        document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `
            <div class="list-item" style="flex-direction:column; align-items:start;">
                <div style="width:100%; display:flex; justify-content:space-between;"><b>🔥 ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
@@ -220,21 +247,19 @@
                <button onclick="advQuest(${q.id})" style="width:100%; background:none; border:1px solid #ddd; border-radius:8px; font-size:0.8rem; cursor:pointer;">+ התקדמות</button>
            </div>`).join('');
 
-       // פרסים
-       document.getElementById('rewardsList').innerHTML = state.rewards.map(r => `
+       document.getElementById('rewardsList').innerHTML = (state.rewards||[]).map(r => `
            <div class="list-item">
                <div><b>${r.name}</b> <br><small>${r.val}💎</small></div>
                <button onclick="buy(${r.val})" style="background:var(--accent); border:none; padding:5px 12px; border-radius:15px; font-weight:bold; cursor:pointer;">פדה</button>
            </div>`).join('');
 
-       // אתגר משפחתי
        document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `
-           <div style="background:white; padding:12px; border-radius:15px; border-right:6px solid var(--coop); margin-bottom:10px; box-shadow:0 3px 6px rgba(0,0,0,0.05);">
+           <div style="background:white; color:#2d3436; padding:12px; border-radius:15px; border-right:6px solid var(--coop); margin-bottom:10px; box-shadow:0 3px 6px rgba(0,0,0,0.05);">
                <b>🤝 ${c.name}</b> (${totalFamPts}/${c.goal})
                <div class="bar-bg"><div class="bar-fill" style="background:var(--coop); width:${Math.min((totalFamPts/c.goal)*100,100)}%"></div></div>
            </div>`).join('');
 
-       const next = state.rewards.filter(r=>r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
+       const next = (state.rewards||[]).filter(r=>r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || (state.rewards||[])[0];
        if(next){
            document.getElementById('mainBar').style.width = Math.min((child.pts/next.val)*100,100)+"%";
            document.getElementById('nextGoalText').innerText = `המטרה: ${next.name} (${next.val} נק')`;
@@ -242,7 +267,6 @@
    }
 
    function renderAdminPanels() {
-       // ניהול משימות
        document.getElementById('manageTasks').innerHTML = state.tasks.map((t,i) => `
            <div class="manage-row">
                <input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
@@ -251,7 +275,6 @@
                <button onclick="state.tasks.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
            </div>`).join('');
 
-       // ניהול פרסים
        document.getElementById('manageRewards').innerHTML = state.rewards.map((r,i) => `
            <div class="manage-row">
                <input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
@@ -259,15 +282,28 @@
                <button onclick="state.rewards.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
            </div>`).join('');
 
-       // ניהול ילדים - כולל עריכת ניקוד
+       document.getElementById('manageQuests').innerHTML = state.quests.map((q,i) => `
+           <div class="manage-row">
+               <input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save()">
+               <input type="number" style="width:45px" value="${q.steps}" onchange="state.quests[${i}].steps=parseInt(this.value);save()">
+               <button onclick="state.quests.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
+           </div>`).join('');
+
+       document.getElementById('manageCoops').innerHTML = state.coops.map((c,i) => `
+           <div class="manage-row">
+               <input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save()">
+               <input type="number" style="width:60px" value="${c.goal}" onchange="state.coops[${i}].goal=parseInt(this.value);save()">
+               <button onclick="state.coops.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
+           </div>`).join('');
+
        const base = window.location.href.split('?')[0];
        document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
-           <div class="manage-row" style="background:#f0f0f0; margin-bottom:5px; border-radius:5px; padding:10px;">
-               <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:5px;">
+           <div class="manage-row" style="background:#f9f9f9; border:1px solid #ddd; margin-bottom:5px; border-radius:5px; padding:8px;">
+               <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
                    <b>${c.name}</b> 
-                   <span>ניקוד: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></span>
+                   <span>💎 <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:65px;"></span>
                </div>
-               <small style="font-size:0.7rem; color:blue;">${base}?child=${c.id}</small>
+               <div style="font-size:0.7rem; color:#666; margin-top:5px; word-break:break-all;">${base}?child=${c.id}</div>
            </div>`).join('');
        
        const pKeys = Object.keys(state.proofs || {});
@@ -284,7 +320,7 @@
            confetti({ particleCount: 100, spread: 70, origin: { x: (rect.left+rect.width/2)/window.innerWidth, y: (rect.top+rect.height/2)/window.innerHeight } });
        } else { 
            state.dailyDone[c.id].splice(idx,1); 
-           c.pts = Math.max(0, c.pts - v); // הגנה ממינוס
+           c.pts = Math.max(0, c.pts - v); 
        }
        save(); render();
    }
@@ -293,7 +329,7 @@
        const c = state.children[state.activeChild];
        if(c.pts>=v){ 
            if(confirm("לפדות פרס?")){
-               c.pts = Math.max(0, c.pts - v); // הגנה ממינוס
+               c.pts = Math.max(0, c.pts - v);
                save(); render(); confetti({particleCount:100});
            }
        } else alert("חסר נקודות");
