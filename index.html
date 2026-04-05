@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Hero 🌟 | Personal Edition</title>
+    <title>Family Hero 🌟</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -19,13 +19,16 @@
         body { font-family: 'Assistant', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; direction: rtl; color: #2d3436; }
         .container { max-width: 1000px; margin: 0 auto; }
 
+        /* Navigation */
         .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
         .child-tab { background: white; padding: 12px 20px; border-radius: 20px; cursor: pointer; border: 2px solid transparent; font-weight: bold; white-space: nowrap; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; transform: translateY(-3px); }
 
+        /* Header Card */
         .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin-bottom: 20px; text-align: center; box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3); position: relative; overflow: hidden; }
         .treasure-box { font-size: 3.5rem; font-weight: 900; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
 
+        /* Lists */
         .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
 
@@ -42,11 +45,11 @@
         
         .btn-show-more { background: #eee; border: none; color: #666; padding: 10px; width: 100%; border-radius: 12px; cursor: pointer; margin-top: 5px; font-weight: bold; }
 
+        /* Progress Bar */
         .bar-bg { width: 100%; height: 12px; background: #eee; border-radius: 10px; margin: 10px 0; overflow: hidden; position: relative; }
         .bar-fill { height: 100%; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 0%; }
 
-        .coop-section { background: white; border-radius: 20px; padding: 15px; border-right: 8px solid var(--coop); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-
+        /* Admin UI */
         .admin-section { margin-top: 40px; padding: 20px; background: #fff; border: 2px dashed #ccc; border-radius: 20px; }
         .accordion { background: #f1f2f6; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
         .panel { display: none; padding: 15px; }
@@ -54,6 +57,7 @@
         .input-edit { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
 
         .hidden { display: none !important; }
+        .coop-section { background: white; border-radius: 20px; padding: 15px; border-right: 8px solid var(--coop); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -78,6 +82,7 @@
     </div>
 
     <div class="main-grid">
+        <!-- משימות -->
         <div class="section-box" style="border-top: 5px solid var(--primary);">
             <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px;">📅 משימות יומיות</h2>
             <div id="tasksList"></div>
@@ -87,6 +92,7 @@
             <div id="questsList"></div>
         </div>
 
+        <!-- פרסים -->
         <div class="section-box" style="border-top: 5px solid var(--loot);">
             <h2 style="color: var(--loot); margin-top: 0;">💎 חנות הפרסים</h2>
             <div id="rewardsList"></div>
@@ -94,15 +100,16 @@
         </div>
     </div>
 
+    <!-- תפריט ניהול -->
     <div id="adminPanel" class="admin-section">
         <h2 style="margin-top:0">⚙️ מרכז ניהול להורים</h2>
         
-        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת תוכן חדש <span>▼</span></button>
+        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת תוכן חדש (משימה/פרס/פרויקט/אתגר) <span>▼</span></button>
         <div class="panel">
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items: flex-end;">
                 <div>
                     <label style="display:block; font-size:0.8rem;">סוג</label>
-                    <select id="addType" style="padding:10px; border-radius:10px;" onchange="updateFormFields()">
+                    <select id="addType" style="padding:10px; border-radius:10px;" onchange="updateFormLabels()">
                         <option value="task">משימה</option>
                         <option value="reward">פרס</option>
                         <option value="quest">🔥 פרויקט</option>
@@ -114,14 +121,14 @@
                     <input type="text" id="addName" placeholder="שם הפריט..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; box-sizing: border-box;">
                 </div>
                 <div style="flex:1">
-                    <label id="addValLabel" style="display:block; font-size:0.8rem;">ערך/יעד</label>
-                    <input type="number" id="addVal" placeholder="נקודות" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; box-sizing: border-box;">
+                    <label id="addValLabel" style="display:block; font-size:0.8rem;">נקודות/שלבים</label>
+                    <input type="number" id="addVal" placeholder="ערך" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; box-sizing: border-box;">
                 </div>
                 <button class="btn-action" style="background:var(--success); color:white; height:42px;" onclick="addNewContent()">הוסף</button>
             </div>
         </div>
 
-        <button class="accordion" onclick="toggleAcc(this)">📝 ניהול הקיים <span>▼</span></button>
+        <button class="accordion" onclick="toggleAcc(this)">📝 ניהול הקיים (עריכה ומחיקה) <span>▼</span></button>
         <div class="panel">
             <h4>משימות</h4><div id="editTasks"></div>
             <h4 style="margin-top:20px">פרסים</h4><div id="editRewards"></div>
@@ -146,7 +153,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const docRef = db.collection("data").doc("v9_personal_state");
+    const docRef = db.collection("data").doc("family_v11_stable");
 
     const urlParams = new URLSearchParams(window.location.search);
     const userIdFromUrl = urlParams.get('u');
@@ -157,10 +164,8 @@
     let state = {
         lastResetDate: new Date().toLocaleDateString(),
         children: [
-            {id: 'c1', name: 'ילד 1', pts: 0},
-            {id: 'c2', name: 'ילד 2', pts: 0},
-            {id: 'c3', name: 'ילד 3', pts: 0},
-            {id: 'c4', name: 'ילד 4', pts: 0}
+            {id: 'c1', name: 'ילד 1', pts: 0}, {id: 'c2', name: 'ילד 2', pts: 0},
+            {id: 'c3', name: 'ילד 3', pts: 0}, {id: 'c4', name: 'ילד 4', pts: 0}
         ],
         tasks: [
             {id:1, name:"צחצוח שיניים", val:2}, {id:2, name:"סידור מיטה", val:2}, {id:3, name:"שיעורי בית", val:10}, 
@@ -188,9 +193,7 @@
             if (data.lastResetDate !== today) {
                 state = {...state, ...data, dailyDone: {}, lastResetDate: today};
                 docRef.set(state);
-            } else {
-                state = {...state, ...data};
-            }
+            } else { state = {...state, ...data}; }
             render();
         } else { docRef.set(state); }
     });
@@ -217,58 +220,37 @@
             `).join('');
         }
 
-        // אתגר משפחתי
         const coopArea = document.getElementById('coopArea');
-        coopArea.innerHTML = (state.coops && state.coops.length > 0) ? `<div class="coop-section"><h3>🤝 אתגר משפחתי</h3>${state.coops.map(c => `<div><b>${c.name}</b> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('')}</div>` : '';
+        coopArea.innerHTML = state.coops.map(c => `<div class="coop-section"><h3>🤝 ${c.name}</h3> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('');
 
+        // הצג עוד - משימות
         const tasksToShow = config.expandedTasks ? state.tasks : state.tasks.slice(0, 5);
         document.getElementById('tasksList').innerHTML = tasksToShow.map(t => {
             const isDone = doneList.includes(t.id);
-            return `<div class="list-item ${isDone?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val} נקודות</small></div><button class="btn-v ${isDone?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`;
+            return `<div class="list-item ${isDone?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val} נק'</small></div><button class="btn-v ${isDone?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`;
         }).join('');
         document.getElementById('btnMoreTasks').innerText = config.expandedTasks ? "הצג פחות ▲" : `הצג עוד (${state.tasks.length - 5}) ▼`;
 
+        // הצג עוד - פרסים
         const rewardsToShow = config.expandedRewards ? state.rewards : state.rewards.slice(0, 5);
         document.getElementById('rewardsList').innerHTML = rewardsToShow.map(r => `<div class="list-item"><div><b>${r.name}</b><br><small>${r.val} 💎</small></div><button class="btn-action" onclick="redeem(${r.val})">פדה</button></div>`).join('');
         document.getElementById('btnMoreRewards').innerText = config.expandedRewards ? "הצג פחות ▲" : `הצג עוד (${state.rewards.length - 5}) ▼`;
 
-        document.getElementById('questsList').innerHTML = state.quests.length ? state.quests.map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="width:100%;" onclick="advanceQuest(${q.id})" ${q.current >= q.steps ? 'disabled' : ''}>+ התקדמות</button></div>`).join('') : '<p style="color:#999; text-align:center;">אין פרויקטים פעילים</p>';
+        document.getElementById('questsList').innerHTML = state.quests.length ? state.quests.map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="width:100%;" onclick="advanceQuest(${q.id})" ${q.current >= q.steps ? 'disabled' : ''}>+ התקדמות</button></div>`).join('') : '<p style="color:#999; text-align:center;">אין פרויקטים</p>';
 
         const nextR = state.rewards.filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
         if(nextR) {
             document.getElementById('mainBar').style.width = Math.min((child.pts / nextR.val) * 100, 100) + "%";
-            document.getElementById('nextGoalText').innerText = `היעד הבא: ${nextR.name} (${nextR.val} נקודות)`;
+            document.getElementById('nextGoalText').innerText = `היעד הבא: ${nextR.name} (${nextR.val} נק')`;
         }
 
         if(isAdmin) {
-            document.getElementById('editChildren').innerHTML = state.children.map(c => `<div class="manage-row"><input class="input-edit" value="${c.name}" onchange="updateChildName('${c.id}', this.value)"> <code style="font-size:0.7rem;">?u=${c.id}</code></div>`).join('');
-            document.getElementById('editTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" value="${t.name}" onchange="editItem('tasks', ${t.id}, 'name', this.value)"><input type="number" style="width:50px" value="${t.val}" onchange="editItem('tasks', ${t.id}, 'val', this.value)"><button onclick="deleteItem('tasks', ${t.id})">🗑️</button></div>`).join('');
-            document.getElementById('editRewards').innerHTML = state.rewards.map(r => `<div class="manage-row"><input class="input-edit" value="${r.name}" onchange="editItem('rewards', ${r.id}, 'name', this.value)"><input type="number" style="width:60px" value="${r.val}" onchange="editItem('rewards', ${r.id}, 'val', this.value)"><button onclick="deleteItem('rewards', ${r.id})">🗑️</button></div>`).join('');
-            document.getElementById('editQuests').innerHTML = state.quests.map(q => `<div class="manage-row"><input class="input-edit" value="${q.name}" onchange="editItem('quests', ${q.id}, 'name', this.value)"><input type="number" style="width:50px" value="${q.steps}" onchange="editItem('quests', ${q.id}, 'steps', this.value)"><button onclick="deleteItem('quests', ${q.id})">🗑️</button></div>`).join('');
-            document.getElementById('editCoops').innerHTML = state.coops.map(c => `<div class="manage-row"><input class="input-edit" value="${c.name}" onchange="editItem('coops', ${c.id}, 'name', this.value)"><input type="number" style="width:80px" value="${c.goal}" onchange="editItem('coops', ${c.id}, 'goal', this.value)"><button onclick="deleteItem('coops', ${c.id})">🗑️</button></div>`).join('');
+            document.getElementById('editChildren').innerHTML = state.children.map(c => `<div class="manage-row"><input class="input-edit" value="${c.name}" onchange="updateChildName('${c.id}', this.value)"> <code>?u=${c.id}</code></div>`).join('');
+            document.getElementById('editTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" value="${t.name}" onchange="editItem('tasks',${t.id},'name',this.value)"><input type="number" style="width:40px" value="${t.val}" onchange="editItem('tasks',${t.id},'val',this.value)"><button onclick="deleteItem('tasks',${t.id})">🗑️</button></div>`).join('');
+            document.getElementById('editRewards').innerHTML = state.rewards.map(r => `<div class="manage-row"><input class="input-edit" value="${r.name}" onchange="editItem('rewards',${r.id},'name',this.value)"><input type="number" style="width:60px" value="${r.val}" onchange="editItem('rewards',${r.id},'val',this.value)"><button onclick="deleteItem('rewards',${r.id})">🗑️</button></div>`).join('');
+            document.getElementById('editQuests').innerHTML = state.quests.map(q => `<div class="manage-row"><input class="input-edit" value="${q.name}" onchange="editItem('quests',${q.id},'name',this.value)"><input type="number" style="width:50px" value="${q.steps}" onchange="editItem('quests',${q.id},'steps',this.value)"><button onclick="deleteItem('quests',${q.id})">🗑️</button></div>`).join('');
+            document.getElementById('editCoops').innerHTML = state.coops.map(c => `<div class="manage-row"><input class="input-edit" value="${c.name}" onchange="editItem('coops',${c.id},'name',this.value)"><input type="number" style="width:70px" value="${c.goal}" onchange="editItem('coops',${c.id},'goal',this.value)"><button onclick="deleteItem('coops',${c.id})">🗑️</button></div>`).join('');
         }
-    }
-
-    function updateFormFields() {
-        const type = document.getElementById('addType').value;
-        const labels = { 'task': 'נקודות', 'reward': 'מחיר', 'quest': 'מספר שלבים', 'coop': 'יעד משפחתי' };
-        document.getElementById('addValLabel').innerText = labels[type];
-    }
-
-    function addNewContent() {
-        const type = document.getElementById('addType').value;
-        const name = document.getElementById('addName').value;
-        const val = parseInt(document.getElementById('addVal').value);
-        if(!name || !val) return;
-        
-        let newState = {...state};
-        if(type === 'task') newState.tasks.push({id: Date.now(), name, val});
-        else if(type === 'reward') newState.rewards.push({id: Date.now(), name, val});
-        else if(type === 'quest') newState.quests.push({id: Date.now(), name, steps: val, current: 0, val: 100});
-        else if(type === 'coop') newState.coops.push({id: Date.now(), name, goal: val});
-        
-        updateState(newState);
-        document.getElementById('addName').value = ""; document.getElementById('addVal').value = "";
     }
 
     function toggleTask(tId, val) {
@@ -288,12 +270,11 @@
     }
 
     function redeem(val) {
-        const child = state.children[state.activeChildIdx];
-        if(child.pts >= val) {
-            if(confirm(`לפדות ${val} נקודות?`)) {
+        if(state.children[state.activeChildIdx].pts >= val) {
+            if(confirm("לפדות פרס?")) {
                 let newState = {...state};
                 newState.children[state.activeChildIdx].pts -= val;
-                confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#f1c40f'] });
+                confetti({ particleCount: 150, colors: ['#f1c40f'] });
                 updateState(newState);
             }
         } else { alert("חסרות נקודות!"); }
@@ -305,9 +286,27 @@
         q.current++;
         if(q.current >= q.steps) {
             newState.children[state.activeChildIdx].pts += 100;
-            confetti({ particleCount: 200, spread: 120 });
-            alert("פרויקט הושלם! +100 נקודות");
+            confetti({ particleCount: 200 });
         }
+        updateState(newState);
+    }
+
+    function addNewContent() {
+        const type = document.getElementById('addType').value;
+        const name = document.getElementById('addName').value;
+        const val = parseInt(document.getElementById('addVal').value);
+        if(!name || !val) return;
+        let newState = {...state};
+        if(type==='task') newState.tasks.push({id:Date.now(), name, val});
+        else if(type==='reward') newState.rewards.push({id:Date.now(), name, val});
+        else if(type==='quest') newState.quests.push({id:Date.now(), name, steps:val, current:0});
+        else if(type==='coop') newState.coops.push({id:Date.now(), name, goal:val});
+        updateState(newState);
+    }
+
+    function updateChildName(id, name) {
+        let newState = {...state};
+        newState.children.find(c => c.id === id).name = name;
         updateState(newState);
     }
 
@@ -325,14 +324,9 @@
         }
     }
 
-    function updateChildName(id, name) {
-        let newState = {...state};
-        newState.children.find(c => c.id === id).name = name;
-        updateState(newState);
-    }
-
     function toggleExpand(type) { if(type==='tasks') config.expandedTasks = !config.expandedTasks; else config.expandedRewards = !config.expandedRewards; render(); }
     function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
+    function updateFormLabels() {}
 
     render();
 </script>
