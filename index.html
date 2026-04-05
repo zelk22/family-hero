@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V8.8.0 Fixed</title>
+   <title>Family Hero 🌟 V8.9.0</title>
     
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -38,6 +38,9 @@
        .manage-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border-bottom: 1px solid #f0f0f0; align-items: center; }
        .btn-del { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
        .input-edit { padding: 5px; border-radius: 5px; border: 1px solid #ddd; }
+       
+       /* הסתרת ממשק הניהול כברירת מחדל */
+       #adminWrapper { display: none; }
    </style>
 </head>
 <body>
@@ -74,8 +77,9 @@
        </div>
    </div>
  
-   <div class="admin-box" style="margin-top: 30px;">
-       <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול מערכת <span>▼</span></button>
+   <!-- עטיפה לממשק הניהול -->
+   <div id="adminWrapper" class="admin-box" style="margin-top: 30px;">
+       <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול מערכת (הורים בלבד) <span>▼</span></button>
        <div class="panel">
            <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן / אתגר <span>▼</span></div>
            <div class="sub-panel">
@@ -119,12 +123,19 @@
    const db = firebase.firestore();
    const docRef = db.collection("data").doc("v875_main_state");
  
+   // בדיקה האם המשתמש הוא מנהל לפי ה-URL
+   const urlParams = new URLSearchParams(window.location.search);
+   const isAdmin = urlParams.get('admin') === 'true';
+   if (isAdmin) {
+       document.getElementById('adminWrapper').style.display = 'block';
+   }
+
    let config = { tasksLimit: 5, rewardsLimit: 5, expandedTasks: false, expandedRewards: false };
    let state = {
        activeChild: 0,
        children: [{id:1, name:"ילד 1", pts:0}, {id:2, name:"ילד 2", pts:0}],
-       tasks: [{id:1, name:"צחצוח שיניים", val:2}, {id:2, name:"סידור מיטה", val:2}],
-       rewards: [{id:101, name:"ממתק קטן", val:30}],
+       tasks: [{id:1, name:"צחצוח שיניים", val:2}],
+       rewards: [{id:101, name:"ממתק", val:30}],
        quests: [], coops: [], dailyDone: {}
    };
  
@@ -132,24 +143,16 @@
 
    function save() { 
        if(!isInitialLoad) {
-           docRef.set(state).then(() => console.log("Saved!")).catch(err => console.error("Save error:", err));
+           docRef.set(state).catch(err => console.error("Save error:", err));
        }
    }
  
    docRef.onSnapshot((doc) => {
-       // תיקון השגיאה - שימוש ב-doc.exists במקום doc.exists() אם נדרש
        if (doc && doc.exists) { 
            state = doc.data();
-           console.log("Data loaded from cloud");
-       } else {
-           console.log("No cloud data, creating...");
        }
        isInitialLoad = false; 
        render(); 
-   }, (error) => {
-       console.error("Snapshot error:", error);
-       isInitialLoad = false;
-       render();
    });
  
    function toggleExpand(type) { 
@@ -179,7 +182,6 @@
            if (q.current >= q.steps) { 
                state.children[state.activeChild].pts += q.val; 
                q.current = 0; 
-               alert(`פרויקט הושלם!`); 
            }
            render(); save();
        }
@@ -228,8 +230,14 @@
  
        document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="font-size:0.75rem; width:100%;" onclick="advanceQuest(${q.id})">+ התקדמות</button></div>`).join('');
  
-       document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `<div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; save();"></div>`).join('');
-       document.getElementById('manageTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; save();"><button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); render(); save();">🗑️</button></div>`).join('');
+       // ניהול הורים
+       if (isAdmin) {
+           document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `<div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; save();"></div>`).join('');
+           document.getElementById('manageTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; save();"><button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); render(); save();">🗑️</button></div>`).join('');
+           document.getElementById('manageRewards').innerHTML = state.rewards.map(r => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${r.name}" onchange="state.rewards.find(x=>x.id==${r.id}).name=this.value; save();"><button class="btn-del" onclick="state.rewards=state.rewards.filter(x=>x.id!==${r.id}); render(); save();">🗑️</button></div>`).join('');
+           document.getElementById('manageQuests').innerHTML = (state.quests||[]).map(q => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${q.name}" onchange="state.quests.find(x=>x.id==${q.id}).name=this.value; save();"><button class="btn-del" onclick="state.quests=state.quests.filter(x=>x.id!==${q.id}); render(); save();">🗑️</button></div>`).join('');
+           document.getElementById('manageCoops').innerHTML = (state.coops||[]).map(c => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${c.name}" onchange="state.coops.find(x=>x.id==${c.id}).name=this.value; save();"><button class="btn-del" onclick="state.coops=state.coops.filter(x=>x.id!==${c.id}); render(); save();">🗑️</button></div>`).join('');
+       }
  
        const nextR = state.rewards.filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
        if(nextR) {
