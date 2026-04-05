@@ -3,88 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Hero 🌟</title>
+    <title>Family Hero 🌟 V8.7.9</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         :root {
             --primary: #6c5ce7; --success: #2ecc71; --special: #e84393;
             --coop: #00cec9; --loot: #f1c40f; --accent: #fdcb6e;
-            --bg: #f0f2f5; --danger: #ff7675;
+            --bg: #f8f9fa; --danger: #ff7675;
         }
 
-        body { font-family: 'Assistant', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; direction: rtl; color: #2d3436; }
-        .container { max-width: 1000px; margin: 0 auto; }
+        body { font-family: 'Assistant', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; direction: rtl; }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-        /* Navigation */
-        .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 10px; }
-        .child-tab { background: white; padding: 12px 20px; border-radius: 20px; cursor: pointer; border: 2px solid transparent; font-weight: bold; white-space: nowrap; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; transform: translateY(-3px); }
+        .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; min-height: 50px; scrollbar-width: none; }
+        .child-tab { background: white; padding: 10px 20px; border-radius: 15px; cursor: pointer; border: 2px solid #eee; font-weight: bold; white-space: nowrap; }
+        .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; }
 
-        /* Header Card */
-        .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin-bottom: 20px; text-align: center; box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3); position: relative; overflow: hidden; }
-        .treasure-box { font-size: 3.5rem; font-weight: 900; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .coop-section { background: white; border-radius: 20px; padding: 15px; border-right: 8px solid var(--coop); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: 10px 0 20px 0; }
 
-        /* Lists */
-        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } }
+        .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin: 10px 0; text-align: center; }
+        .treasure-box { font-size: 3.5rem; font-weight: 900; }
 
-        .section-box { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .list-item { background: #f8f9fa; border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-right: 6px solid #ddd; transition: 0.3s; }
-        .list-item.completed { background-color: #e8f8f0; border-right-color: var(--success); opacity: 0.8; }
-        .list-item.completed b { text-decoration: line-through; color: #777; }
+        .list-item { background: white; border-radius: 15px; padding: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border-right: 5px solid transparent; transition: 0.3s; }
+        .list-item.completed { background-color: #e8f8f0; border-right-color: var(--success); }
+        .list-item.completed b { text-decoration: line-through; opacity: 0.6; color: #27ae60; }
         
-        .btn-v { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--success); background: white; color: var(--success); cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-v.done { background: var(--success); color: white; border: none; transform: scale(1.1); }
+        .btn-v { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--success); background: white; color: var(--success); cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .btn-v.done { background: var(--success); color: white; border: none; }
         
-        .btn-action { background: var(--accent); border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #e67e22; transition: 0.1s; }
-        .btn-action:active { transform: translateY(3px); box-shadow: none; }
-        
-        .btn-show-more { background: #eee; border: none; color: #666; padding: 10px; width: 100%; border-radius: 12px; cursor: pointer; margin-top: 5px; font-weight: bold; }
+        .btn-action { background: var(--accent); border: none; padding: 8px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        .btn-show-more { background: none; border: 1px solid #ddd; color: #888; padding: 8px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 5px; font-weight: bold; }
 
-        /* Progress Bar */
-        .bar-bg { width: 100%; height: 12px; background: #eee; border-radius: 10px; margin: 10px 0; overflow: hidden; position: relative; }
-        .bar-fill { height: 100%; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 0%; }
+        .bar-bg { width: 100%; height: 12px; background: #eee; border-radius: 10px; margin: 8px 0; overflow: hidden; }
+        .bar-fill { height: 100%; transition: 0.4s; width: 0%; }
 
-        /* Admin UI */
-        .admin-section { margin-top: 40px; padding: 20px; background: #fff; border: 2px dashed #ccc; border-radius: 20px; }
-        .accordion { background: #f1f2f6; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
-        .panel { display: none; padding: 15px; }
-        .manage-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; background: #fafafa; padding: 8px; border-radius: 10px; }
-        .input-edit { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 8px; }
-
-        .hidden { display: none !important; }
-        .coop-section { background: white; border-radius: 20px; padding: 15px; border-right: 8px solid var(--coop); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .panel { display: none; padding: 15px; background: white; border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; }
+        .sub-accordion { background: #f9f9f9; padding: 12px; width: 100%; border: 1px solid #f0f0f0; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 5px; text-align: right; display: block; }
+        .sub-panel { display: none; padding: 10px; border: 1px solid #f0f0f0; margin-bottom: 10px; border-radius: 10px; }
+        .manage-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border-bottom: 1px solid #f0f0f0; align-items: center; }
+        .btn-del { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .input-edit { padding: 5px; border-radius: 5px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header style="text-align: center; padding: 15px;">
-        <h1 style="color: var(--primary); margin: 0; font-size: 2rem;">Family Hero 🌟</h1>
-        <div id="dateDisplay" style="color: #636e72; font-weight: bold;"></div>
+    <header style="text-align: center; padding: 10px;">
+        <h1 style="color: var(--primary); margin: 0;">Family Hero 🌟</h1>
+        <div id="dateDisplay" style="color: #888; font-size: 0.9rem;"></div>
     </header>
 
     <div id="childrenNav" class="children-nav"></div>
-    
     <div id="coopArea"></div>
 
     <div class="stats-card">
-        <span style="font-size: 1.1rem; opacity: 0.9;">💰 תיבת האוצר של <span id="activeNameDisplay">...</span></span>
+        <span style="font-size: 1rem; opacity: 0.9;">💰 תיבת האוצר של <span id="activeNameDisplay">...</span></span>
         <div id="activePoints" class="treasure-box">0</div>
-        <div class="bar-bg" style="background: rgba(255,255,255,0.2); height: 15px;">
-            <div id="mainBar" class="bar-fill" style="background: var(--accent);"></div>
-        </div>
-        <small id="nextGoalText" style="font-weight: bold; font-size: 1rem;"></small>
+        <div class="progress-wrapper" style="background:rgba(255,255,255,0.2); height:12px; border-radius:10px; margin:15px 0; overflow:hidden;"><div id="mainBar" class="bar-fill" style="background:var(--accent);"></div></div>
+        <small id="nextGoalText" style="font-weight: bold;"></small>
     </div>
 
-    <div class="main-grid">
-        <!-- משימות -->
-        <div class="section-box" style="border-top: 5px solid var(--primary);">
-            <h2 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px;">📅 משימות יומיות</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="main-grid">
+        <div class="section" style="border-top: 4px solid var(--primary); background: white; padding: 15px; border-radius: 20px;">
+            <h2 style="color: var(--primary); margin-top: 0;">📅 משימות יומיות</h2>
             <div id="tasksList"></div>
             <button id="btnMoreTasks" class="btn-show-more" onclick="toggleExpand('tasks')">הצג עוד ▼</button>
             
@@ -92,52 +77,42 @@
             <div id="questsList"></div>
         </div>
 
-        <!-- פרסים -->
-        <div class="section-box" style="border-top: 5px solid var(--loot);">
+        <div class="section" style="border-top: 4px solid var(--loot); background: white; padding: 15px; border-radius: 20px;">
             <h2 style="color: var(--loot); margin-top: 0;">💎 חנות הפרסים</h2>
             <div id="rewardsList"></div>
             <button id="btnMoreRewards" class="btn-show-more" onclick="toggleExpand('rewards')">הצג עוד ▼</button>
         </div>
     </div>
 
-    <!-- תפריט ניהול -->
-    <div id="adminPanel" class="admin-section">
-        <h2 style="margin-top:0">⚙️ מרכז ניהול להורים</h2>
-        
-        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת תוכן חדש (משימה/פרס/פרויקט/אתגר) <span>▼</span></button>
+    <div class="admin-box" style="margin-top: 30px;">
+        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת תוכן / אתגר <span>▼</span></button>
         <div class="panel">
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items: flex-end;">
-                <div>
-                    <label style="display:block; font-size:0.8rem;">סוג</label>
-                    <select id="addType" style="padding:10px; border-radius:10px;" onchange="updateFormLabels()">
-                        <option value="task">משימה</option>
-                        <option value="reward">פרס</option>
-                        <option value="quest">🔥 פרויקט</option>
-                        <option value="coop">🤝 אתגר משפחתי</option>
-                    </select>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+                <div style="flex:1"><label>סוג</label><select id="addType" onchange="updateFormFields()"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">🤝 אתגר משפחתי</option></select></div>
+                <div style="flex:2"><label>שם הפריט</label><input type="text" id="addName" placeholder="שם..."></div>
+                <div style="flex:1"><label id="valLabel">ניקוד/שלבים</label>
+                    <select id="addDiff"><option value="2">קל (2)</option><option value="10">בינוני (10)</option><option value="30">קשה (30)</option></select>
+                    <input type="number" id="addNum" style="display:none;" value="10">
                 </div>
-                <div style="flex:2">
-                    <label style="display:block; font-size:0.8rem;">שם</label>
-                    <input type="text" id="addName" placeholder="שם הפריט..." style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; box-sizing: border-box;">
-                </div>
-                <div style="flex:1">
-                    <label id="addValLabel" style="display:block; font-size:0.8rem;">נקודות/שלבים</label>
-                    <input type="number" id="addVal" placeholder="ערך" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; box-sizing: border-box;">
-                </div>
-                <button class="btn-action" style="background:var(--success); color:white; height:42px;" onclick="addNewContent()">הוסף</button>
+                <button class="btn-action" style="background:var(--success); color:white; height:40px;" onclick="addNewContent()">שמור</button>
             </div>
         </div>
 
-        <button class="accordion" onclick="toggleAcc(this)">📝 ניהול הקיים (עריכה ומחיקה) <span>▼</span></button>
+        <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול מערכת <span>▼</span></button>
         <div class="panel">
-            <h4>משימות</h4><div id="editTasks"></div>
-            <h4 style="margin-top:20px">פרסים</h4><div id="editRewards"></div>
-            <h4 style="margin-top:20px">פרויקטים</h4><div id="editQuests"></div>
-            <h4 style="margin-top:20px">אתגרים משפחתיים</h4><div id="editCoops"></div>
+            <button class="sub-accordion" onclick="toggleSub(this)">👶 שמות ילדים <span>▼</span></button>
+            <div class="sub-panel" id="manageChildren"></div>
+            <button class="sub-accordion" onclick="toggleSub(this)">📝 עריכת משימות <span>▼</span></button>
+            <div class="sub-panel" id="manageTasks"></div>
+            <button class="sub-accordion" onclick="toggleSub(this)">🎁 עריכת פרסים <span>▼</span></button>
+            <div class="sub-panel" id="manageRewards"></div>
+            <button class="sub-accordion" onclick="toggleSub(this)">🔥 עריכת פרויקטים <span>▼</span></button>
+            <div class="sub-panel" id="manageQuests"></div>
+            <button class="sub-accordion" onclick="toggleSub(this)">🤝 עריכת אתגרים <span>▼</span></button>
+            <div class="sub-panel" id="manageCoops"></div>
+            <button class="sub-accordion" onclick="toggleSub(this)">⏰ איפוס יומי <span>▼</span></button>
+            <div class="sub-panel"><button class="btn-show-more" style="color:red; border-color:red" onclick="manualReset()">איפוס סימוני V</button></div>
         </div>
-
-        <button class="accordion" onclick="toggleAcc(this)">👶 ניהול ילדים ולינקים <span>▼</span></button>
-        <div class="panel" id="editChildren"></div>
     </div>
 </div>
 
@@ -153,60 +128,79 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const docRef = db.collection("data").doc("family_v11_stable");
+    const docRef = db.collection("data").doc("v875_main_state");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const userIdFromUrl = urlParams.get('u');
-    const isAdmin = !userIdFromUrl;
+    let config = { tasksLimit: 5, rewardsLimit: 5, expandedTasks: false, expandedRewards: false };
 
-    let config = { expandedTasks: false, expandedRewards: false };
-    
     let state = {
-        lastResetDate: new Date().toLocaleDateString(),
-        children: [
-            {id: 'c1', name: 'ילד 1', pts: 0}, {id: 'c2', name: 'ילד 2', pts: 0},
-            {id: 'c3', name: 'ילד 3', pts: 0}, {id: 'c4', name: 'ילד 4', pts: 0}
-        ],
+        activeChild: 0,
+        children: [{id:1, name:"ילד 1", pts:0}, {id:2, name:"ילד 2", pts:0}, {id:3, name:"ילד 3", pts:0}, {id:4, name:"ילד 4", pts:0}],
         tasks: [
-            {id:1, name:"צחצוח שיניים", val:2}, {id:2, name:"סידור מיטה", val:2}, {id:3, name:"שיעורי בית", val:10}, 
-            {id:4, name:"מקלחת בזמן", val:10}, {id:5, name:"עריכת שולחן", val:5}, {id:6, name:"סידור תיק", val:5}, 
-            {id:7, name:"איסוף משחקים", val:5}, {id:8, name:"קריאה", val:10}, {id:9, name:"התארגנות בוקר", val:5}, {id:10, name:"התנהגות חברית", val:10}
+            {id:1, name:"צחצוח שיניים", val:2}, {id:2, name:"סידור מיטה", val:2}, {id:3, name:"שיעורי בית", val:10}, {id:4, name:"מקלחת בזמן", val:10}, {id:5, name:"עריכת שולחן", val:5},
+            {id:6, name:"סידור תיק", val:5}, {id:7, name:"איסוף משחקים", val:5}, {id:8, name:"קריאה", val:10}, {id:9, name:"התארגנות בוקר", val:5}, {id:10, name:"התנהגות חברית", val:10}
         ],
         rewards: [
-            {id:101, name:"ממתק קטן", val:30}, {id:102, name:"30 דק' מסך", val:100}, {id:103, name:"תיבת הפתעה", val:150}, 
-            {id:104, name:"בחירת ארוחה", val:200}, {id:105, name:"שינה אצל חבר", val:300}, {id:106, name:"סרט", val:400}, 
-            {id:107, name:"גלידה", val:500}, {id:108, name:"זמן איכות", val:600}, {id:109, name:"צעצוע", val:800}, {id:110, name:"יום כיף", val:1500}
+            {id:101, name:"ממתק קטן", val:30}, {id:102, name:"30 דק' מסך", val:100}, {id:103, name:"תיבת הפתעה", val:150}, {id:104, name:"בחירת ארוחה", val:200}, {id:105, name:"שינה אצל חבר", val:300},
+            {id:106, name:"סרט", val:400}, {id:107, name:"גלידה", val:500}, {id:108, name:"זמן איכות", val:600}, {id:109, name:"צעצוע", val:800}, {id:110, name:"יום כיף", val:1500}
         ],
-        quests: [], coops: [], dailyDone: {}, activeChildIdx: 0
+        quests: [{id:201, name:"חוברת עבודה", steps:10, current:0, val:100}],
+        coops: [],
+        dailyDone: {}
     };
 
-    function updateState(newState) {
-        state = {...state, ...newState};
-        render();
-        docRef.set(state);
-    }
+    function save() { docRef.set(state); }
 
     docRef.onSnapshot((doc) => {
-        if (doc.exists()) {
-            const data = doc.data();
-            const today = new Date().toLocaleDateString();
-            if (data.lastResetDate !== today) {
-                state = {...state, ...data, dailyDone: {}, lastResetDate: today};
-                docRef.set(state);
-            } else { state = {...state, ...data}; }
-            render();
-        } else { docRef.set(state); }
+        if (doc.exists()) { 
+            state = {...state, ...doc.data()}; 
+            render(); 
+        } else { save(); render(); }
     });
 
-    function render() {
-        if (!isAdmin) {
-            const foundIdx = state.children.findIndex(c => c.id === userIdFromUrl);
-            state.activeChildIdx = foundIdx !== -1 ? foundIdx : 0;
-            document.getElementById('childrenNav').classList.add('hidden');
-            document.getElementById('adminPanel').classList.add('hidden');
-        }
+    function toggleExpand(type) { 
+        if(type==='tasks') config.expandedTasks = !config.expandedTasks; 
+        if(type==='rewards') config.expandedRewards = !config.expandedRewards; 
+        render(); 
+    }
 
-        const child = state.children[state.activeChildIdx];
+    function toggleTask(tId, val) {
+        const cId = state.children[state.activeChild].id;
+        if(!state.dailyDone[cId]) state.dailyDone[cId] = [];
+        const idx = state.dailyDone[cId].indexOf(tId);
+        if(idx === -1) { state.dailyDone[cId].push(tId); state.children[state.activeChild].pts += val; } 
+        else { state.dailyDone[cId].splice(idx, 1); state.children[state.activeChild].pts -= val; }
+        render(); save();
+    }
+
+    function advanceQuest(qId) {
+        const q = state.quests.find(x => x.id === qId);
+        if (q.current < q.steps) {
+            q.current++;
+            if (q.current >= q.steps) { state.children[state.activeChild].pts += q.val; q.current = 0; alert(`פרויקט הושלם!`); }
+            render(); save();
+        }
+    }
+
+    function addNewContent() {
+        const type = document.getElementById('addType').value;
+        const name = document.getElementById('addName').value;
+        if(!name) return;
+        const val = (type === 'task') ? parseInt(document.getElementById('addDiff').value) : parseInt(document.getElementById('addNum').value);
+        if(type === 'task') state.tasks.push({id:Date.now(), name, val});
+        else if(type === 'reward') state.rewards.push({id:Date.now(), name, val});
+        else if(type === 'quest') state.quests.push({id:Date.now(), name, steps:val, current:0, val:100});
+        else if(type === 'coop') state.coops.push({id:Date.now(), name, goal:val});
+        render(); save();
+    }
+
+    function updateFormFields() {
+        const type = document.getElementById('addType').value;
+        document.getElementById('addDiff').style.display = (type === 'task') ? 'block' : 'none';
+        document.getElementById('addNum').style.display = (type !== 'task') ? 'block' : 'none';
+    }
+
+    function render() {
+        const child = state.children[state.activeChild];
         const doneList = state.dailyDone[child.id] || [];
         const totalFamilyPoints = state.children.reduce((s, c) => s + (c.pts || 0), 0);
 
@@ -214,121 +208,60 @@
         document.getElementById('activePoints').innerText = child.pts;
         document.getElementById('activeNameDisplay').innerText = child.name;
 
-        if (isAdmin) {
-            document.getElementById('childrenNav').innerHTML = state.children.map((c, idx) => `
-                <div class="child-tab ${idx===state.activeChildIdx?'active':''}" onclick="state.activeChildIdx=${idx}; render();">${c.name}</div>
-            `).join('');
-        }
+        // ילדים
+        document.getElementById('childrenNav').innerHTML = state.children.map((c, idx) => `
+            <div class="child-tab ${idx===state.activeChild?'active':''}" onclick="state.activeChild=${idx}; render();">${c.name}</div>`).join('');
 
+        // אתגר קבוצתי
         const coopArea = document.getElementById('coopArea');
-        coopArea.innerHTML = state.coops.map(c => `<div class="coop-section"><h3>🤝 ${c.name}</h3> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('');
+        if(state.coops && state.coops.length > 0) {
+            coopArea.innerHTML = `<div class="coop-section"><h3 style="margin:0">🤝 אתגר משפחתי</h3>
+                ${state.coops.map(c => `<div style="margin-top:5px;"><b>${c.name}</b> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('')}</div>`;
+        } else { coopArea.innerHTML = ''; }
 
-        // הצג עוד - משימות
-        const tasksToShow = config.expandedTasks ? state.tasks : state.tasks.slice(0, 5);
+        // משימות (5 ראשונות)
+        const tasksToShow = config.expandedTasks ? state.tasks : state.tasks.slice(0, config.tasksLimit);
         document.getElementById('tasksList').innerHTML = tasksToShow.map(t => {
             const isDone = doneList.includes(t.id);
-            return `<div class="list-item ${isDone?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val} נק'</small></div><button class="btn-v ${isDone?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`;
+            return `<div class="list-item ${isDone?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val}</small></div>
+                <button class="btn-v ${isDone?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`;
         }).join('');
-        document.getElementById('btnMoreTasks').innerText = config.expandedTasks ? "הצג פחות ▲" : `הצג עוד (${state.tasks.length - 5}) ▼`;
+        document.getElementById('btnMoreTasks').innerText = config.expandedTasks ? "הצג פחות ▲" : `הצג עוד (${state.tasks.length - config.tasksLimit}) ▼`;
 
-        // הצג עוד - פרסים
-        const rewardsToShow = config.expandedRewards ? state.rewards : state.rewards.slice(0, 5);
-        document.getElementById('rewardsList').innerHTML = rewardsToShow.map(r => `<div class="list-item"><div><b>${r.name}</b><br><small>${r.val} 💎</small></div><button class="btn-action" onclick="redeem(${r.val})">פדה</button></div>`).join('');
-        document.getElementById('btnMoreRewards').innerText = config.expandedRewards ? "הצג פחות ▲" : `הצג עוד (${state.rewards.length - 5}) ▼`;
+        // פרסים (5 ראשונים)
+        const rewardsToShow = config.expandedRewards ? state.rewards : state.rewards.slice(0, config.rewardsLimit);
+        document.getElementById('rewardsList').innerHTML = rewardsToShow.map(r => `
+            <div class="list-item"><div><b>${r.name}</b><br><small>${r.val} 💎</small></div>
+                <button class="btn-action" onclick="if(child.pts>=${r.val}){child.pts-=${r.val}; render(); save();}else{alert('חסר נקודות');}">פדה</button></div>`).join('');
+        document.getElementById('btnMoreRewards').innerText = config.expandedRewards ? "הצג פחות ▲" : `הצג עוד (${state.rewards.length - config.rewardsLimit}) ▼`;
 
-        document.getElementById('questsList').innerHTML = state.quests.length ? state.quests.map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="width:100%;" onclick="advanceQuest(${q.id})" ${q.current >= q.steps ? 'disabled' : ''}>+ התקדמות</button></div>`).join('') : '<p style="color:#999; text-align:center;">אין פרויקטים</p>';
+        // פרויקטים
+        document.getElementById('questsList').innerHTML = state.quests.map(q => `
+            <div class="list-item" style="flex-direction:column; align-items:start;">
+                <div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div>
+                <div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div>
+                <button class="btn-action" style="font-size:0.75rem; width:100%;" onclick="advanceQuest(${q.id})" ${q.current >= q.steps ? 'disabled' : ''}>+ התקדמות</button>
+            </div>`).join('');
+
+        // ניהול
+        document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `<div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; save();"></div>`).join('');
+        document.getElementById('manageTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; save();"><button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); render(); save();">🗑️</button></div>`).join('');
+        document.getElementById('manageRewards').innerHTML = state.rewards.map(r => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${r.name}" onchange="state.rewards.find(x=>x.id==${r.id}).name=this.value; save();"><button class="btn-del" onclick="state.rewards=state.rewards.filter(x=>x.id!==${r.id}); render(); save();">🗑️</button></div>`).join('');
+        document.getElementById('manageQuests').innerHTML = state.quests.map(q => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${q.name}" onchange="state.quests.find(x=>x.id==${q.id}).name=this.value; save();"><button class="btn-del" onclick="state.quests=state.quests.filter(x=>x.id!==${q.id}); render(); save();">🗑️</button></div>`).join('');
+        document.getElementById('manageCoops').innerHTML = state.coops.map(c => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${c.name}" onchange="state.coops.find(x=>x.id==${c.id}).name=this.value; save();"><button class="btn-del" onclick="state.coops=state.coops.filter(x=>x.id!==${c.id}); render(); save();">🗑️</button></div>`).join('');
 
         const nextR = state.rewards.filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
         if(nextR) {
             document.getElementById('mainBar').style.width = Math.min((child.pts / nextR.val) * 100, 100) + "%";
-            document.getElementById('nextGoalText').innerText = `היעד הבא: ${nextR.name} (${nextR.val} נק')`;
-        }
-
-        if(isAdmin) {
-            document.getElementById('editChildren').innerHTML = state.children.map(c => `<div class="manage-row"><input class="input-edit" value="${c.name}" onchange="updateChildName('${c.id}', this.value)"> <code>?u=${c.id}</code></div>`).join('');
-            document.getElementById('editTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" value="${t.name}" onchange="editItem('tasks',${t.id},'name',this.value)"><input type="number" style="width:40px" value="${t.val}" onchange="editItem('tasks',${t.id},'val',this.value)"><button onclick="deleteItem('tasks',${t.id})">🗑️</button></div>`).join('');
-            document.getElementById('editRewards').innerHTML = state.rewards.map(r => `<div class="manage-row"><input class="input-edit" value="${r.name}" onchange="editItem('rewards',${r.id},'name',this.value)"><input type="number" style="width:60px" value="${r.val}" onchange="editItem('rewards',${r.id},'val',this.value)"><button onclick="deleteItem('rewards',${r.id})">🗑️</button></div>`).join('');
-            document.getElementById('editQuests').innerHTML = state.quests.map(q => `<div class="manage-row"><input class="input-edit" value="${q.name}" onchange="editItem('quests',${q.id},'name',this.value)"><input type="number" style="width:50px" value="${q.steps}" onchange="editItem('quests',${q.id},'steps',this.value)"><button onclick="deleteItem('quests',${q.id})">🗑️</button></div>`).join('');
-            document.getElementById('editCoops').innerHTML = state.coops.map(c => `<div class="manage-row"><input class="input-edit" value="${c.name}" onchange="editItem('coops',${c.id},'name',this.value)"><input type="number" style="width:70px" value="${c.goal}" onchange="editItem('coops',${c.id},'goal',this.value)"><button onclick="deleteItem('coops',${c.id})">🗑️</button></div>`).join('');
+            document.getElementById('nextGoalText').innerText = `המטרה: ${nextR.name} (${nextR.val} נק')`;
         }
     }
 
-    function toggleTask(tId, val) {
-        const cId = state.children[state.activeChildIdx].id;
-        let newState = {...state};
-        if(!newState.dailyDone[cId]) newState.dailyDone[cId] = [];
-        const idx = newState.dailyDone[cId].indexOf(tId);
-        if(idx === -1) {
-            newState.dailyDone[cId].push(tId);
-            newState.children[state.activeChildIdx].pts += val;
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        } else {
-            newState.dailyDone[cId].splice(idx, 1);
-            newState.children[state.activeChildIdx].pts -= val;
-        }
-        updateState(newState);
-    }
+    render(); // רינדור ראשוני מיידי
 
-    function redeem(val) {
-        if(state.children[state.activeChildIdx].pts >= val) {
-            if(confirm("לפדות פרס?")) {
-                let newState = {...state};
-                newState.children[state.activeChildIdx].pts -= val;
-                confetti({ particleCount: 150, colors: ['#f1c40f'] });
-                updateState(newState);
-            }
-        } else { alert("חסרות נקודות!"); }
-    }
-
-    function advanceQuest(qId) {
-        let newState = {...state};
-        const q = newState.quests.find(x => x.id === qId);
-        q.current++;
-        if(q.current >= q.steps) {
-            newState.children[state.activeChildIdx].pts += 100;
-            confetti({ particleCount: 200 });
-        }
-        updateState(newState);
-    }
-
-    function addNewContent() {
-        const type = document.getElementById('addType').value;
-        const name = document.getElementById('addName').value;
-        const val = parseInt(document.getElementById('addVal').value);
-        if(!name || !val) return;
-        let newState = {...state};
-        if(type==='task') newState.tasks.push({id:Date.now(), name, val});
-        else if(type==='reward') newState.rewards.push({id:Date.now(), name, val});
-        else if(type==='quest') newState.quests.push({id:Date.now(), name, steps:val, current:0});
-        else if(type==='coop') newState.coops.push({id:Date.now(), name, goal:val});
-        updateState(newState);
-    }
-
-    function updateChildName(id, name) {
-        let newState = {...state};
-        newState.children.find(c => c.id === id).name = name;
-        updateState(newState);
-    }
-
-    function editItem(coll, id, field, val) {
-        let newState = {...state};
-        newState[coll].find(x => x.id === id)[field] = (field !== 'name') ? parseInt(val) : val;
-        updateState(newState);
-    }
-
-    function deleteItem(coll, id) {
-        if(confirm("למחוק?")) {
-            let newState = {...state};
-            newState[coll] = newState[coll].filter(x => x.id !== id);
-            updateState(newState);
-        }
-    }
-
-    function toggleExpand(type) { if(type==='tasks') config.expandedTasks = !config.expandedTasks; else config.expandedRewards = !config.expandedRewards; render(); }
     function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
-    function updateFormLabels() {}
-
-    render();
+    function toggleSub(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
+    function manualReset() { if(confirm('לאפס?')) { state.dailyDone = {}; render(); save(); } }
 </script>
 </body>
 </html>
