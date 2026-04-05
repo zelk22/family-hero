@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V14.1</title>
+   <title>Family Hero 🌟 V14.2</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -80,7 +80,6 @@
        </div>
        <small id="nextGoalText" style="font-weight: bold; display: block; margin-bottom: 10px;"></small>
 
-       <!-- גלגל המזל -->
        <button id="wheelBtn" class="wheel-btn" onclick="spinWheel()">🎡 בונוס גלגל המזל!</button>
    </div>
 
@@ -99,6 +98,9 @@
 
    <div id="adminWrapper" style="display:none;">
        <h2 style="text-align:center;">🛠️ ניהול הורים</h2>
+       
+       <button onclick="copyChildLinks()" style="width:100%; margin-bottom:15px; padding:12px; background:var(--coop); color:white; border:none; border-radius:10px; font-weight:bold;">🔗 העתק לינקים לילדים</button>
+
        <button class="accordion" onclick="toggleAcc(this)">➕ הוספה מהירה <span>▼</span></button>
        <div class="panel">
            <div style="display:flex; gap:5px; flex-wrap:wrap;">
@@ -145,6 +147,7 @@
 
    const urlParams = new URLSearchParams(window.location.search);
    const isAdmin = urlParams.get('admin') === 'true';
+   const targetChildId = urlParams.get('childId');
    const childColors = ["#6c5ce7", "#e84393", "#00cec9", "#f1c40f", "#ff7675"];
 
    let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{} };
@@ -154,8 +157,15 @@
    function save() { if(!isInitialLoad) docRef.set(state); }
 
    docRef.onSnapshot(doc => {
-       if(doc.exists) state = doc.data();
-       if(!state.wheelDone) state.wheelDone = {}; // הגנה למקרה שהשדה חסר ב-DB
+       if(doc.exists) {
+           state = doc.data();
+           // בחירת הילד לפי ה-URL בטעינה ראשונית
+           if (isInitialLoad && targetChildId) {
+               const idx = state.children.findIndex(c => c.id == targetChildId);
+               if (idx !== -1) state.activeChild = idx;
+           }
+       }
+       if(!state.wheelDone) state.wheelDone = {};
        isInitialLoad = false;
        const h = new Date().getHours();
        document.getElementById('mainBody').classList.toggle('dark-mode', h >= 19 || h < 7);
@@ -183,15 +193,19 @@
            document.getElementById('mainBar').style.width = "100%";
        }
 
-       // הצגת גלגל המזל - רק אם ביצע 7 משימות וגם לא השתמש בגלגל היום
        const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
        document.getElementById('wheelBtn').style.display = (done.length >= 7 && !hasUsedWheel) ? 'inline-block' : 'none';
 
+       // הצגת ניווט רק לאדמין
+       const navEl = document.getElementById('childrenNav');
        if(isAdmin){
            document.getElementById('adminWrapper').style.display = 'block';
-           document.getElementById('childrenNav').innerHTML = state.children.map((c,i)=>`
+           navEl.style.display = 'flex';
+           navEl.innerHTML = state.children.map((c,i)=>`
                <div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
            renderAdmin();
+       } else {
+           navEl.style.display = 'none';
        }
 
        document.getElementById('tasksList').innerHTML = (state.tasks||[]).map(t => `
@@ -219,17 +233,27 @@
            </div>`).join('');
    }
 
+   function copyChildLinks() {
+       const baseUrl = window.location.href.split('?')[0];
+       let report = "לינקים אישיים לילדים:\n\n";
+       state.children.forEach(c => {
+           report += `${c.name}: ${baseUrl}?childId=${c.id}\n`;
+       });
+       report += `\nניהול הורים: ${baseUrl}?admin=true`;
+       
+       navigator.clipboard.writeText(report).then(() => {
+           alert("כל הלינקים הועתקו ללוח! תוכל להדביק אותם בוואטסאפ.");
+       });
+   }
+
    function spinWheel() {
        const child = state.children[state.activeChild];
-       if(state.wheelDone && state.wheelDone[child.id]) return; // הגנה נוספת
-
+       if(state.wheelDone && state.wheelDone[child.id]) return;
        const bonus = [10, 20, 30, 40, 50][Math.floor(Math.random()*5)];
        alert("הגלגל מסתובב... מזל טוב! זכית ב-" + bonus + " נקודות בונוס!");
-       
        child.pts += bonus;
        if(!state.wheelDone) state.wheelDone = {};
-       state.wheelDone[child.id] = true; // סימון שהילד השתמש בגלגל היום
-
+       state.wheelDone[child.id] = true;
        confetti({ particleCount: 200, spread: 90 });
        save(); render();
    }
