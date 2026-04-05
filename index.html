@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V14.0</title>
+   <title>Family Hero 🌟 V14.1</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -75,7 +75,6 @@
        <span style="font-size: 1.3rem; font-weight: bold;">💎 תיבת האוצר של <span id="activeNameDisplay">...</span></span>
        <div id="activePoints" class="treasure-box">0</div>
        
-       <!-- בר התקדמות -->
        <div style="width:100%; height:14px; background:rgba(255,255,255,0.2); border-radius:10px; margin:10px 0; overflow:hidden;">
            <div id="mainBar" style="height:100%; transition:1s; background:var(--accent); width: 0%;"></div>
        </div>
@@ -125,7 +124,7 @@
        <button class="accordion" onclick="toggleAcc(this)">👶 ניקוד ילדים <span>▼</span></button>
        <div class="panel" id="manageChildren"></div>
        
-       <button onclick="if(confirm('לאפס יום?')){state.dailyDone={};state.proofs={};save();render();}" style="width:100%; margin-top:15px; padding:12px; background:var(--danger); color:white; border:none; border-radius:10px; font-weight:bold;">⏰ איפוס יומי</button>
+       <button onclick="if(confirm('לאפס יום?')){state.dailyDone={};state.proofs={};state.wheelDone={};save();render();}" style="width:100%; margin-top:15px; padding:12px; background:var(--danger); color:white; border:none; border-radius:10px; font-weight:bold;">⏰ איפוס יומי</button>
    </div>
 </div>
 
@@ -148,7 +147,7 @@
    const isAdmin = urlParams.get('admin') === 'true';
    const childColors = ["#6c5ce7", "#e84393", "#00cec9", "#f1c40f", "#ff7675"];
 
-   let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{} };
+   let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{} };
    let pendingTaskId = null;
    let isInitialLoad = true;
 
@@ -156,6 +155,7 @@
 
    docRef.onSnapshot(doc => {
        if(doc.exists) state = doc.data();
+       if(!state.wheelDone) state.wheelDone = {}; // הגנה למקרה שהשדה חסר ב-DB
        isInitialLoad = false;
        const h = new Date().getHours();
        document.getElementById('mainBody').classList.toggle('dark-mode', h >= 19 || h < 7);
@@ -173,7 +173,6 @@
        document.getElementById('activeNameDisplay').innerText = child.name;
        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
 
-       // עדכון יעד פרס קרוב
        const nextReward = (state.rewards||[]).filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0];
        if(nextReward) {
            const gap = nextReward.val - child.pts;
@@ -184,8 +183,9 @@
            document.getElementById('mainBar').style.width = "100%";
        }
 
-       // הצגת גלגל המזל (מעל 7 משימות)
-       document.getElementById('wheelBtn').style.display = done.length >= 7 ? 'inline-block' : 'none';
+       // הצגת גלגל המזל - רק אם ביצע 7 משימות וגם לא השתמש בגלגל היום
+       const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
+       document.getElementById('wheelBtn').style.display = (done.length >= 7 && !hasUsedWheel) ? 'inline-block' : 'none';
 
        if(isAdmin){
            document.getElementById('adminWrapper').style.display = 'block';
@@ -220,10 +220,16 @@
    }
 
    function spinWheel() {
+       const child = state.children[state.activeChild];
+       if(state.wheelDone && state.wheelDone[child.id]) return; // הגנה נוספת
+
        const bonus = [10, 20, 30, 40, 50][Math.floor(Math.random()*5)];
        alert("הגלגל מסתובב... מזל טוב! זכית ב-" + bonus + " נקודות בונוס!");
-       state.children[state.activeChild].pts += bonus;
-       // איפוס מונה משימות כדי שלא ילחצו שוב מיד (או שאפשר להשאיר כבונוס חד פעמי ביום)
+       
+       child.pts += bonus;
+       if(!state.wheelDone) state.wheelDone = {};
+       state.wheelDone[child.id] = true; // סימון שהילד השתמש בגלגל היום
+
        confetti({ particleCount: 200, spread: 90 });
        save(); render();
    }
@@ -253,7 +259,7 @@
        const proofs = state.proofs || {};
        document.getElementById('proofViewer').innerHTML = Object.entries(proofs).map(([id, p]) => `
            <div class="proof-card"><img src="${p.img}" class="proof-img" onclick="window.open(this.src)"><br><small>${p.by}</small><br>
-           <button onclick="delete state.proofs['${id}'];save();render();" style="font-size:0.6rem;">מחק</button></div>`).join('');
+           <button onclick="delete state.proofs['${id}'];save();render();" style="font-size:0.6rem;">מחק</button></div>`).join('') || "אין צילומים";
 
        document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
            <div class="manage-row"><b>${c.name}</b>: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></div>`).join('');
