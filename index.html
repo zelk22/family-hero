@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V13.2</title>
+   <title>Family Hero 🌟 V13.3</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -13,151 +13,132 @@
            --primary: #6c5ce7; --success: #2ecc71; --special: #e84393;
            --coop: #00cec9; --loot: #f1c40f; --accent: #fdcb6e;
            --bg: #f8f9fa; --text: #2d3436; --danger: #ff7675;
+           --child-color: #6c5ce7;
        }
        
-       /* מצב לילה - משפיע רק על ממשק הילד */
        body.dark-mode { --bg: #2d3436; --text: #dfe6e9; --primary: #a29bfe; }
-       body.dark-mode .list-item, 
-       body.dark-mode .child-tab, 
-       body.dark-mode .stats-card { 
+       body.dark-mode .list-item, body.dark-mode .child-tab:not(.active), body.dark-mode .stats-card { 
            background: #353b48; color: white; border-color: #4b4b4b; 
        }
        
-       /* קיבוע ממשק ההורה למצב בהיר תמיד */
+       /* תפריט ניהול - תמיד בהיר */
        #adminWrapper { 
-           background: #f1f2f6; 
-           color: #2d3436 !important; 
-           padding: 15px; 
-           border-radius: 20px; 
-           margin-top: 30px; 
-           border: 2px solid #ddd;
+           background: #ffffff; color: #2d3436 !important; padding: 15px; border-radius: 20px; 
+           margin-top: 30px; border: 3px solid var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.1);
        }
-       #adminWrapper .panel, 
-       #adminWrapper .sub-panel, 
-       #adminWrapper .accordion, 
-       #adminWrapper .sub-accordion, 
-       #adminWrapper .manage-row,
-       #adminWrapper input,
-       #adminWrapper select { 
-           background: white !important; 
-           color: #2d3436 !important; 
-           border: 1px solid #ddd !important;
-       }
-       #adminWrapper .accordion, #adminWrapper .sub-accordion { background: #e1e1e1 !important; }
+       #adminWrapper * { color: #2d3436 !important; }
+       #adminWrapper .accordion { background: #f1f2f6 !important; border: 1px solid #ddd !important; }
 
        body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.5s; }
        .container { max-width: 1100px; margin: 0 auto; }
        
-       .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-       .child-tab { background: white; padding: 10px 20px; border-radius: 15px; cursor: pointer; border: 2px solid #eee; font-weight: bold; white-space: nowrap; }
-       .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; }
+       /* ניווט ילדים משופר */
+       .children-nav { display: flex; gap: 12px; overflow-x: auto; padding: 15px 0; justify-content: center; }
+       .child-tab { 
+           background: white; padding: 12px 25px; border-radius: 50px; cursor: pointer; 
+           border: 2px solid #eee; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+       }
+       .child-tab.active { 
+           border-color: var(--child-color); background: var(--child-color); color: white !important; 
+           transform: scale(1.1); box-shadow: 0 0 15px rgba(108, 92, 231, 0.4);
+       }
 
-       .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin: 10px 0; text-align: center; }
-       .treasure-box { font-size: 3.5rem; font-weight: 900; }
+       /* כרטיס תיבת אוצר */
+       .stats-card { 
+           background: linear-gradient(135deg, var(--child-color), #341f97); 
+           color: white; padding: 30px; border-radius: 30px; margin: 15px 0; text-align: center; 
+           transition: 0.5s; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+       }
+       .treasure-box { font-size: 4rem; font-weight: 900; text-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
        
-       .list-item { background: white; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid transparent; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-       .list-item.completed { background-color: rgba(46, 204, 113, 0.15); border-right-color: var(--success); }
-       .list-item.completed b { text-decoration: line-through; opacity: 0.5; }
+       .list-item { background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-right: 6px solid transparent; transition: 0.3s; }
+       .list-item.completed { background-color: rgba(46, 204, 113, 0.1); border-right-color: var(--success); opacity: 0.8; }
 
-       .wheel-btn { width: 100%; padding: 15px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin: 10px 0; }
-       .wheel-btn.locked { background: #d1d8e0; color: #7f8c8d; cursor: not-allowed; }
-       .wheel-btn.unlocked { background: var(--special); color: white; box-shadow: 0 0 15px rgba(232, 67, 147, 0.4); animation: pulse 1.5s infinite; }
-       @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.02);} 100% {transform: scale(1);} }
+       .wheel-btn { width: 100%; padding: 18px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin: 10px 0; font-size: 1.1rem; }
+       .wheel-btn.unlocked { background: var(--special); color: white; animation: pulse 1.5s infinite; }
+       @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.03);} 100% {transform: scale(1);} }
 
-       .bar-bg { width: 100%; height: 12px; background: rgba(0,0,0,0.1); border-radius: 10px; margin: 8px 0; overflow: hidden; }
-       .bar-fill { height: 100%; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+       .bar-bg { width: 100%; height: 14px; background: rgba(255,255,255,0.2); border-radius: 10px; margin: 10px 0; overflow: hidden; }
+       .bar-fill { height: 100%; background: var(--accent); transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 10px; display: flex; justify-content: space-between; }
-       .panel { display: none; padding: 15px; border-radius: 0 0 12px 12px; }
-       .sub-accordion { background: #f9f9f9; padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-weight: bold; text-align: right; }
-       .sub-panel { display: none; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-       .manage-row { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
-       .input-edit { padding: 6px; border-radius: 5px; border: 1px solid #ddd; flex: 1; min-width: 100px; }
-       
-       .btn-v { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--success); background: none; color: var(--success); cursor: pointer; font-size: 1.2rem; }
-       .btn-v.done { background: var(--success); color: white; border: none; }
-       #adminWrapper, #childrenNav { display: none; }
+       .accordion { width: 100%; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+       .panel { display: none; padding: 15px; }
+       .manage-row { display: flex; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+       .btn-v { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--success); background: none; color: var(--success); cursor: pointer; font-size: 1.3rem; }
+       .btn-v.done { background: var(--success); color: white; }
    </style>
 </head>
 <body id="mainBody">
 
 <div class="container">
-   <header style="text-align: center;">
-       <h1 style="margin: 0; color: var(--primary);">Family Hero 🌟</h1>
-       <div id="dateDisplay" style="opacity: 0.7; font-size: 0.9rem;"></div>
+   <header style="text-align: center; margin-bottom: 10px;">
+       <h1 style="margin: 0; color: var(--primary); font-size: 2.2rem;">Family Hero 🌟</h1>
+       <div id="dateDisplay" style="opacity: 0.8; font-weight: bold;"></div>
    </header>
 
    <div id="childrenNav" class="children-nav"></div>
+   
    <div id="coopArea"></div>
 
-   <div class="wheel-area">
-       <button id="dailyWheel" class="wheel-btn locked" onclick="spinWheel()">🎁 מתנת היום (נעול)</button>
-       <div id="bonusProgressText" style="text-align:center; font-size: 0.8rem; font-weight: bold; color: var(--special);"></div>
+   <div class="stats-card" id="mainStatsCard">
+       <span style="font-size: 1.3rem; opacity: 0.95; font-weight: bold;">💎 תיבת האוצר של <span id="activeNameDisplay">...</span></span>
+       <div id="activePoints" class="treasure-box">0</div>
+       <div class="bar-bg"><div id="mainBar" class="bar-fill" style="width: 0%;"></div></div>
+       <small id="nextGoalText" style="font-weight: bold; font-size: 1rem;"></small>
    </div>
 
-   <div class="stats-card">
-       <span style="font-size: 1rem; opacity: 0.9;">הקופה של <span id="activeNameDisplay">...</span></span>
-       <div id="activePoints" class="treasure-box">0</div>
-       <div class="bar-bg" style="background:rgba(255,255,255,0.2); height:15px;"><div id="mainBar" class="bar-fill" style="background:var(--accent); width: 0%;"></div></div>
-       <small id="nextGoalText" style="font-weight: bold;"></small>
+   <div class="wheel-area">
+       <button id="dailyWheel" class="wheel-btn" onclick="spinWheel()">🎁 מתנת היום (נעול)</button>
+       <div id="bonusProgressText" style="text-align:center; font-size: 0.9rem; font-weight: bold; color: var(--special);"></div>
    </div>
 
    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="main-grid">
        <div class="section">
-           <h2 style="color: var(--primary);">📅 משימות</h2>
+           <h2 style="color: var(--primary);">📅 משימות היום</h2>
            <div id="tasksList"></div>
-           <h3 style="color: var(--special); margin-top: 20px;">🔥 פרויקטים</h3>
+           <h3 style="color: var(--special); margin-top: 25px;">🔥 פרויקטים ארוכים</h3>
            <div id="questsList"></div>
        </div>
        <div class="section">
-           <h2 style="color: var(--loot);">💎 פרסים</h2>
+           <h2 style="color: var(--loot);">💎 פרסים שווים</h2>
            <div id="rewardsList"></div>
        </div>
    </div>
 
-   <!-- תפריט הניהול שתמיד נשאר בהיר -->
-   <div id="adminWrapper">
-       <h3 style="margin-top:0; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">⚙️ ממשק הורה - תמיד יום</h3>
-       <button class="accordion" onclick="toggleAcc(this)">ניהול תוכן והגדרות <span>▼</span></button>
+   <div id="adminWrapper" style="display:none;">
+       <h2 style="margin:0; text-align:center; color: var(--primary) !important;">🛠️ מרכז ניהול הורים</h2>
+       
+       <button class="accordion" onclick="toggleAcc(this)">📋 ניהול משימות, פרסים ותוכן <span>▼</span></button>
        <div class="panel">
-           
-           <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן חדש <span>▼</span></div>
-           <div class="sub-panel">
+           <div style="background:#f1f2f6; padding:15px; border-radius:10px; margin-bottom:15px;">
+               <h4 style="margin:0 0 10px 0;">➕ הוסף פריט חדש</h4>
                <div style="display:flex; gap:5px; flex-wrap:wrap;">
                    <select id="addType"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">אתגר משפחתי</option></select>
-                   <input type="text" id="addName" placeholder="שם...">
-                   <input type="number" id="addVal" placeholder="ערך" style="width:60px;">
-                   <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;">שמור</button>
+                   <input type="text" id="addName" placeholder="מה להוסיף?">
+                   <input type="number" id="addVal" placeholder="שווי" style="width:60px;">
+                   <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">שמור</button>
                </div>
            </div>
-
-           <div class="sub-accordion" onclick="toggleSub(this)">📸 אישור הוכחות צילום <span>▼</span></div>
-           <div class="sub-panel" id="proofViewer" style="display:flex; gap:10px; overflow-x:auto;">אין הוכחות</div>
-
-           <div class="sub-accordion" onclick="toggleSub(this)">📝 ניהול משימות <span>▼</span></div>
-           <div class="sub-panel" id="manageTasks"></div>
-
-           <div class="sub-accordion" onclick="toggleSub(this)">🔥 ניהול פרויקטים <span>▼</span></div>
-           <div class="sub-panel" id="manageQuests"></div>
-
-           <div class="sub-accordion" onclick="toggleSub(this)">🎁 ניהול פרסים <span>▼</span></div>
-           <div class="sub-panel" id="manageRewards"></div>
-
-           <div class="sub-accordion" onclick="toggleSub(this)">🤝 ניהול אתגר משפחתי <span>▼</span></div>
-           <div class="sub-panel" id="manageCoops"></div>
-
-           <div class="sub-accordion" onclick="toggleSub(this)">👶 ניהול ילדים וניקוד <span>▼</span></div>
-           <div class="sub-panel" id="manageChildren"></div>
-
-           <button class="sub-accordion" style="color:var(--danger)" onclick="if(confirm('לאפס V להיום?')){state.dailyDone={};save();render();}">⏰ איפוס יומי ידני</button>
+           
+           <div id="manageTasks"></div>
+           <div id="manageQuests"></div>
+           <div id="manageRewards"></div>
+           <div id="manageCoops"></div>
        </div>
+
+       <button class="accordion" onclick="toggleAcc(this)">👶 ניהול ילדים וניקוד ידני <span>▼</span></button>
+       <div class="panel" id="manageChildren"></div>
+
+       <button class="accordion" onclick="toggleAcc(this)">📸 צילומי הוכחה מהיום <span>▼</span></button>
+       <div class="panel" id="proofViewer" style="display:flex; gap:10px; overflow-x:auto;">אין צילומים עדיין.</div>
+
+       <button onclick="if(confirm('לאפס את כל המשימות להיום?')){state.dailyDone={};save();render();}" style="width:100%; padding:15px; margin-top:10px; background:var(--danger); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">⏰ איפוס יומי (ניקוי V)</button>
    </div>
 </div>
 
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-   // Firebase Config (נשאר אותו דבר)
    const firebaseConfig = {
        apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
        authDomain: "family-hero-3a3fd.firebaseapp.com",
@@ -173,6 +154,10 @@
    const urlParams = new URLSearchParams(window.location.search);
    const isAdmin = urlParams.get('admin') === 'true';
    const childIdParam = urlParams.get('child');
+   
+   // פלטת צבעים לילדים כדי שיהיה שינוי ויזואלי ברור
+   const childColors = ["#6c5ce7", "#e84393", "#00cec9", "#f1c40f", "#ff7675"];
+
    let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelClaims:{} };
    let isInitialLoad = true;
    let curTaskPhoto = null;
@@ -194,7 +179,6 @@
 
    function checkMode() {
        const h = new Date().getHours();
-       // מצב לילה בין 19:00 ל-07:00
        document.getElementById('mainBody').classList.toggle('dark-mode', h>=19 || h<7);
    }
 
@@ -203,38 +187,46 @@
        const child = state.children[state.activeChild];
        const done = state.dailyDone[child.id] || [];
        const totalFamPts = (state.children||[]).reduce((a,b)=>a+(b.pts||0),0);
+       
+       // עדכון צבע נושא לפי הילד
+       const themeColor = childColors[state.activeChild % childColors.length];
+       document.documentElement.style.setProperty('--child-color', themeColor);
 
        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
        document.getElementById('activePoints').innerText = child.pts;
        document.getElementById('activeNameDisplay').innerText = child.name;
 
+       // בונוס יומי
        const bonusBtn = document.getElementById('dailyWheel');
        const progressText = document.getElementById('bonusProgressText');
        const today = new Date().toDateString();
        const claimed = state.wheelClaims && state.wheelClaims[child.id] === today;
        
        if(claimed) {
-           bonusBtn.className = "wheel-btn locked"; bonusBtn.innerText = "✅ המתנה התקבלה!"; progressText.innerText = "";
+           bonusBtn.className = "wheel-btn locked"; bonusBtn.innerText = "✅ קיבלת את המתנה היומית!"; progressText.innerText = "";
        } else if(done.length >= 7) {
-           bonusBtn.className = "wheel-btn unlocked"; bonusBtn.innerText = "🌟 פתח את מתנת היום!"; progressText.innerText = "הגעת ל-7 משימות!";
+           bonusBtn.className = "wheel-btn unlocked"; bonusBtn.innerText = "🌟 פתח את תיבת האוצר!"; progressText.innerText = "הגעת ל-7 משימות!";
        } else {
-           bonusBtn.className = "wheel-btn locked"; bonusBtn.innerText = "🎁 מתנת היום (נעול)"; progressText.innerText = `עוד ${7 - done.length} משימות לבונוס`;
+           bonusBtn.className = "wheel-btn locked"; bonusBtn.style.background = "#d1d8e0"; bonusBtn.innerText = "🎁 מתנת היום (נעול)"; progressText.innerText = `עוד ${7 - done.length} משימות לבונוס`;
        }
 
        if(isAdmin){
            document.getElementById('adminWrapper').style.display = 'block';
            document.getElementById('childrenNav').style.display = 'flex';
-           document.getElementById('childrenNav').innerHTML = state.children.map((c,i)=>`<div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
+           document.getElementById('childrenNav').innerHTML = state.children.map((c,i)=>`
+               <div class="child-tab ${i==state.activeChild?'active':''}" 
+                    style="${i==state.activeChild?`--child-color:${childColors[i%childColors.length]}`:''}"
+                    onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
            renderAdminPanels();
        }
 
+       // רשימות
        document.getElementById('tasksList').innerHTML = (state.tasks||[]).map(t => {
            const isDone = done.includes(t.id);
-           const hasImg = state.proofs && state.proofs[child.id+"_"+t.id];
            return `<div class="list-item ${isDone?'completed':''}">
-               <div><b>${t.name}</b> <small>+${t.val}</small></div>
+               <div><b>${t.name}</b> <small>(+${t.val})</small></div>
                <div style="display:flex; gap:8px;">
-                   ${t.needPhoto && !isDone ? `<button onclick="curTaskPhoto=${t.id};document.getElementById('cameraInput').click()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;">${hasImg?'✅📸':'📸'}</button>` : ''}
+                   ${t.needPhoto && !isDone ? `<button onclick="curTaskPhoto=${t.id};document.getElementById('cameraInput').click()" style="background:none;border:none;cursor:pointer;font-size:1.3rem;">📸</button>` : ''}
                    <button class="btn-v ${isDone?'done':''}" onclick="toggleTask(${t.id},${t.val}, event)">✓</button>
                </div>
            </div>`;
@@ -242,72 +234,56 @@
 
        document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `
            <div class="list-item" style="flex-direction:column; align-items:start;">
-               <div style="width:100%; display:flex; justify-content:space-between;"><b>🔥 ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
-               <div class="bar-bg"><div class="bar-fill" style="background:var(--special); width:${((q.current||0)/q.steps)*100}%"></div></div>
-               <button onclick="advQuest(${q.id})" style="width:100%; background:none; border:1px solid #ddd; border-radius:8px; font-size:0.8rem; cursor:pointer;">+ התקדמות</button>
+               <div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
+               <div class="bar-bg" style="background:rgba(0,0,0,0.1);"><div class="bar-fill" style="background:var(--special); width:${((q.current||0)/q.steps)*100}%"></div></div>
+               <button onclick="advQuest(${q.id})" style="width:100%; background:none; border:1px solid #ddd; border-radius:8px; padding:5px; cursor:pointer; font-size:0.8rem;">עוד שלב +</button>
            </div>`).join('');
 
        document.getElementById('rewardsList').innerHTML = (state.rewards||[]).map(r => `
            <div class="list-item">
-               <div><b>${r.name}</b> <br><small>${r.val}💎</small></div>
-               <button onclick="buy(${r.val})" style="background:var(--accent); border:none; padding:5px 12px; border-radius:15px; font-weight:bold; cursor:pointer;">פדה</button>
+               <div><b>${r.name}</b> <br><small>${r.val} 💎</small></div>
+               <button onclick="buy(${r.val})" style="background:var(--accent); border:none; padding:8px 15px; border-radius:20px; font-weight:bold; cursor:pointer;">פדה</button>
            </div>`).join('');
 
        document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `
-           <div style="background:white; color:#2d3436; padding:12px; border-radius:15px; border-right:6px solid var(--coop); margin-bottom:10px; box-shadow:0 3px 6px rgba(0,0,0,0.05);">
-               <b>🤝 ${c.name}</b> (${totalFamPts}/${c.goal})
-               <div class="bar-bg"><div class="bar-fill" style="background:var(--coop); width:${Math.min((totalFamPts/c.goal)*100,100)}%"></div></div>
+           <div style="background:white; color:#2d3436; padding:15px; border-radius:20px; border-right:8px solid var(--coop); margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+               <div style="display:flex; justify-content:space-between;"><b>🤝 ${c.name}</b> <span>${totalFamPts}/${c.goal}</span></div>
+               <div class="bar-bg" style="background:rgba(0,0,0,0.05);"><div class="bar-fill" style="background:var(--coop); width:${Math.min((totalFamPts/c.goal)*100,100)}%"></div></div>
            </div>`).join('');
 
        const next = (state.rewards||[]).filter(r=>r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || (state.rewards||[])[0];
        if(next){
            document.getElementById('mainBar').style.width = Math.min((child.pts/next.val)*100,100)+"%";
-           document.getElementById('nextGoalText').innerText = `המטרה: ${next.name} (${next.val} נק')`;
+           document.getElementById('nextGoalText').innerText = `היעד הבא: ${next.name} (${next.val} נק')`;
        }
    }
 
    function renderAdminPanels() {
-       document.getElementById('manageTasks').innerHTML = state.tasks.map((t,i) => `
+       document.getElementById('manageTasks').innerHTML = "<h4>משימות קיימות:</h4>" + state.tasks.map((t,i) => `
            <div class="manage-row">
                <input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
                <input type="number" style="width:45px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
-               <button onclick="state.tasks[${i}].needPhoto=!state.tasks[${i}].needPhoto;save();render();" style="background:none;border:none;cursor:pointer;">${t.needPhoto?'📸':'📷'}</button>
-               <button onclick="state.tasks.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
+               <button onclick="state.tasks[${i}].needPhoto=!state.tasks[${i}].needPhoto;save();render();">${t.needPhoto?'📸':'📷'}</button>
+               <button onclick="state.tasks.splice(${i},1);save();render()">🗑️</button>
            </div>`).join('');
 
-       document.getElementById('manageRewards').innerHTML = state.rewards.map((r,i) => `
+       document.getElementById('manageRewards').innerHTML = "<h4>פרסים קיימים:</h4>" + state.rewards.map((r,i) => `
            <div class="manage-row">
                <input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
                <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
-               <button onclick="state.rewards.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
+               <button onclick="state.rewards.splice(${i},1);save();render()">🗑️</button>
            </div>`).join('');
 
-       document.getElementById('manageQuests').innerHTML = state.quests.map((q,i) => `
-           <div class="manage-row">
-               <input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save()">
-               <input type="number" style="width:45px" value="${q.steps}" onchange="state.quests[${i}].steps=parseInt(this.value);save()">
-               <button onclick="state.quests.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
-           </div>`).join('');
-
-       document.getElementById('manageCoops').innerHTML = state.coops.map((c,i) => `
-           <div class="manage-row">
-               <input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save()">
-               <input type="number" style="width:60px" value="${c.goal}" onchange="state.coops[${i}].goal=parseInt(this.value);save()">
-               <button onclick="state.coops.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
-           </div>`).join('');
-
-       const base = window.location.href.split('?')[0];
        document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
-           <div class="manage-row" style="background:#f9f9f9; border:1px solid #ddd; margin-bottom:5px; border-radius:5px; padding:8px;">
-               <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                   <b>${c.name}</b> 
-                   <span>💎 <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:65px;"></span>
+           <div class="manage-row" style="background:#f9f9f9; border:1px solid #ddd; margin-bottom:10px; border-radius:10px; padding:15px; display:block;">
+               <div style="display:flex; justify-content:space-between; align-items:center;">
+                   <b style="font-size:1.1rem;">${c.name}</b> 
+                   <span>💎 <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:70px; padding:5px; border-radius:5px; border:1px solid #ccc;"></span>
                </div>
-               <div style="font-size:0.7rem; color:#666; margin-top:5px; word-break:break-all;">${base}?child=${c.id}</div>
            </div>`).join('');
        
        const pKeys = Object.keys(state.proofs || {});
-       document.getElementById('proofViewer').innerHTML = pKeys.length ? pKeys.map(k => `<div><img src="${state.proofs[k]}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" onclick="window.open(this.src)"><br><button onclick="delete state.proofs['${k}'];save();render()" style="font-size:0.6rem;">מחק</button></div>`).join('') : "אין צילומים";
+       document.getElementById('proofViewer').innerHTML = pKeys.length ? pKeys.map(k => `<div><img src="${state.proofs[k]}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;" onclick="window.open(this.src)"><br><button onclick="delete state.proofs['${k}'];save();render()" style="font-size:0.7rem; width:100%;">מחק</button></div>`).join('') : "אין צילומים.";
    }
 
    function toggleTask(id, v, event) {
@@ -328,11 +304,11 @@
    function buy(v) {
        const c = state.children[state.activeChild];
        if(c.pts>=v){ 
-           if(confirm("לפדות פרס?")){
+           if(confirm("לפדות פרס ולהפחית נקודות?")){
                c.pts = Math.max(0, c.pts - v);
-               save(); render(); confetti({particleCount:100});
+               save(); render(); confetti({particleCount:150, spread:100});
            }
-       } else alert("חסר נקודות");
+       } else alert("חסרות לך נקודות בתיבת האוצר!");
    }
 
    function addItem() {
@@ -350,14 +326,13 @@
 
    function spinWheel() {
        const child = state.children[state.activeChild];
-       const doneCount = (state.dailyDone[child.id] || []).length;
-       if(doneCount < 7) return;
+       if((state.dailyDone[child.id] || []).length < 7) return;
        const bonus = Math.floor(Math.random()*15)+10;
        child.pts += bonus;
        if(!state.wheelClaims) state.wheelClaims = {};
        state.wheelClaims[child.id] = new Date().toDateString();
        confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
-       alert(`כל הכבוד! קיבלת ${bonus} נקודות בונוס! 🎁`);
+       alert(`תיבת האוצר נפתחה! זכית ב-${bonus} נקודות בונוס! 🎁`);
        save(); render();
    }
 
@@ -365,7 +340,7 @@
        const q = state.quests.find(x=>x.id==id);
        if(q && (q.current||0) < q.steps) {
            q.current = (q.current||0) + 1;
-           if(q.current >= q.steps) { state.children[state.activeChild].pts += 100; q.current = 0; confetti({particleCount:150}); alert("פרויקט הושלם!"); }
+           if(q.current >= q.steps) { state.children[state.activeChild].pts += 100; q.current = 0; alert("פרויקט הושלם! בונוס 100 נקודות!"); }
            save(); render();
        }
    }
@@ -381,7 +356,6 @@
    }
 
    function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display==='block'?'none':'block'; }
-   function toggleSub(el) { const p = el.nextElementSibling; p.style.display = p.style.display==='block'?'none':'block'; }
 </script>
 </body>
 </html>
