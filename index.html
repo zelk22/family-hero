@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V9.1.0</title>
+   <title>Family Hero 🌟 V10.0</title>
     
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -12,96 +12,95 @@
        :root {
            --primary: #6c5ce7; --success: #2ecc71; --special: #e84393;
            --coop: #00cec9; --loot: #f1c40f; --accent: #fdcb6e;
-           --bg: #f8f9fa; --danger: #ff7675;
+           --bg: #f8f9fa; --text: #2d3436; --danger: #ff7675;
        }
-       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); margin: 0; padding: 15px; direction: rtl; }
+       /* מצב לילה אוטומטי */
+       body.dark-mode {
+           --bg: #2d3436; --text: #dfe6e9; --primary: #a29bfe;
+       }
+       body.dark-mode .list-item, body.dark-mode .child-tab, body.dark-mode .panel {
+           background: #353b48; color: white; border-color: #4b4b4b;
+       }
+
+       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.5s; }
        .container { max-width: 1100px; margin: 0 auto; }
-       .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; min-height: 50px; scrollbar-width: none; }
-       .child-tab { background: white; padding: 10px 20px; border-radius: 15px; cursor: pointer; border: 2px solid #eee; font-weight: bold; white-space: nowrap; }
+       .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; min-height: 50px; }
+       .child-tab { background: white; padding: 10px 20px; border-radius: 15px; cursor: pointer; border: 2px solid #eee; font-weight: bold; }
        .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; }
-       .coop-section { background: white; border-radius: 20px; padding: 15px; border-right: 8px solid var(--coop); box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: 10px 0 20px 0; }
-       .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin: 10px 0; text-align: center; }
-       .treasure-box { font-size: 3.5rem; font-weight: 900; }
-       .list-item { background: white; border-radius: 15px; padding: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border-right: 5px solid transparent; transition: 0.3s; }
-       .list-item.completed { background-color: #e8f8f0; border-right-color: var(--success); }
-       .list-item.completed b { text-decoration: line-through; opacity: 0.6; color: #27ae60; }
-       .btn-v { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--success); background: white; color: var(--success); cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
-       .btn-v.done { background: var(--success); color: white; border: none; }
-       .btn-action { background: var(--accent); border: none; padding: 8px 18px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-       .btn-show-more { background: none; border: 1px solid #ddd; color: #888; padding: 8px; width: 100%; border-radius: 10px; cursor: pointer; margin-top: 5px; font-weight: bold; }
-       .bar-bg { width: 100%; height: 12px; background: #eee; border-radius: 10px; margin: 8px 0; overflow: hidden; }
-       .bar-fill { height: 100%; transition: 0.4s; width: 0%; }
-       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; }
-       .panel { display: none; padding: 15px; background: white; border: 1px solid #eee; border-radius: 12px; margin-bottom: 15px; }
-       .sub-accordion { background: #f9f9f9; padding: 12px; width: 100%; border: 1px solid #f0f0f0; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 5px; text-align: right; display: block; }
-       .sub-panel { display: none; padding: 10px; border: 1px solid #f0f0f0; margin-bottom: 10px; border-radius: 10px; }
-       .manage-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border-bottom: 1px solid #f0f0f0; align-items: center; }
-       .btn-del { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
-       .input-edit { padding: 5px; border-radius: 5px; border: 1px solid #ddd; }
        
-       /* הסתרת אלמנטים כברירת מחדל */
+       .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin: 10px 0; text-align: center; position: relative; overflow: hidden; }
+       .treasure-box { font-size: 3.5rem; font-weight: 900; }
+       
+       .list-item { background: white; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid transparent; }
+       .list-item.completed { background-color: rgba(46, 204, 113, 0.1); border-right-color: var(--success); }
+       
+       .badge { background: #ffeaa7; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-left: 5px; color: #d6a017; font-weight: bold; }
+       
+       .wheel-btn { background: var(--special); color: white; border: none; padding: 10px; border-radius: 50px; width: 100%; margin: 10px 0; font-weight: bold; cursor: pointer; animation: pulse 2s infinite; }
+       @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.02);} 100% {transform: scale(1);} }
+
+       .camera-btn { background: #eee; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; }
+       .proof-img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; margin-top: 5px; cursor: pointer; }
+
        #adminWrapper, #childrenNav { display: none; }
+       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+       .panel { display: none; padding: 15px; background: white; border-radius: 12px; }
    </style>
 </head>
-<body>
+<body id="mainBody">
  
 <div class="container">
-   <header style="text-align: center; padding: 10px;">
-       <h1 style="color: var(--primary); margin: 0;">Family Hero 🌟</h1>
-       <div id="dateDisplay" style="color: #888; font-size: 0.9rem;">טוען...</div>
+   <header style="text-align: center;">
+       <h1 style="margin: 0;">Family Hero 🌟</h1>
+       <div id="dateDisplay" style="color: #888;"></div>
    </header>
  
    <div id="childrenNav" class="children-nav"></div>
    <div id="coopArea"></div>
+
+   <button id="dailyWheel" class="wheel-btn" onclick="spinWheel()">🎁 מתנת היום (בונוס רנדומלי!)</button>
  
    <div class="stats-card">
-       <span style="font-size: 1rem; opacity: 0.9;">💰 תיבת האוצר של <span id="activeNameDisplay">...</span></span>
+       <div id="badgesArea"></div>
+       <span style="font-size: 1rem; opacity: 0.9;">💰 הקופה של <span id="activeNameDisplay">...</span></span>
        <div id="activePoints" class="treasure-box">0</div>
-       <div class="progress-wrapper" style="background:rgba(255,255,255,0.2); height:12px; border-radius:10px; margin:15px 0; overflow:hidden;"><div id="mainBar" class="bar-fill" style="background:var(--accent);"></div></div>
+       <div class="progress-wrapper" style="background:rgba(255,255,255,0.2); height:12px; border-radius:10px; margin:15px 0; overflow:hidden;"><div id="mainBar" style="height:100%; background:var(--accent); transition:1s;"></div></div>
        <small id="nextGoalText" style="font-weight: bold;"></small>
    </div>
  
    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="main-grid">
-       <div class="section" style="border-top: 4px solid var(--primary); background: white; padding: 15px; border-radius: 20px;">
-           <h2 style="color: var(--primary); margin-top: 0;">📅 משימות יומיות</h2>
+       <div class="section">
+           <h2 style="color: var(--primary);">📅 משימות</h2>
            <div id="tasksList"></div>
-           <button id="btnMoreTasks" class="btn-show-more" onclick="toggleExpand('tasks')">הצג עוד ▼</button>
-           <h3 style="color: var(--special); margin-top: 30px; border-top: 2px solid #f0f0f0; padding-top: 15px;">🔥 פרויקטים</h3>
-           <div id="questsList"></div>
        </div>
-       <div class="section" style="border-top: 4px solid var(--loot); background: white; padding: 15px; border-radius: 20px;">
-           <h2 style="color: var(--loot); margin-top: 0;">💎 חנות הפרסים</h2>
+       <div class="section">
+           <h2 style="color: var(--loot);">💎 חנות</h2>
            <div id="rewardsList"></div>
-           <button id="btnMoreRewards" class="btn-show-more" onclick="toggleExpand('rewards')">הצג עוד ▼</button>
        </div>
    </div>
  
-   <div id="adminWrapper" class="admin-box" style="margin-top: 30px;">
-       <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול מערכת (הורים בלבד) <span>▼</span></button>
+   <div id="adminWrapper">
+       <button class="accordion" onclick="toggleAcc(this)">⚙️ הגדרות הורה <span>▼</span></button>
        <div class="panel">
-           <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן <span>▼</span></div>
-           <div class="sub-panel">
-               <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
-                    <div style="flex:1"><label>סוג</label><select id="addType" onchange="updateFormFields()"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">🤝 אתגר משפחתי</option></select></div>
-                    <div style="flex:2"><label>שם הפריט</label><input type="text" id="addName" placeholder="שם..."></div>
-                    <div style="flex:1"><label id="valLabel">ניקוד/שלבים</label>
-                        <select id="addDiff"><option value="2">קל (2)</option><option value="10">בינוני (10)</option><option value="30">קשה (30)</option></select>
-                        <input type="number" id="addNum" style="display:none;" value="10">
-                    </div>
-                    <button class="btn-action" style="background:var(--success); color:white; height:40px;" onclick="addNewContent()">שמור</button>
-               </div>
+           <h3>הוספת פריט</h3>
+           <div style="display:flex; gap:5px; flex-wrap:wrap;">
+               <input type="text" id="addName" placeholder="שם..." style="flex:2; padding:8px;">
+               <select id="addType"><option value="task">משימה</option><option value="reward">פרס</option></select>
+               <input type="number" id="addVal" placeholder="נק'" style="width:60px;">
+               <label><input type="checkbox" id="needPhoto"> דרוש צילום?</label>
+               <button onclick="addItem()" style="background:var(--success); border:none; color:white; padding:10px; border-radius:5px;">הוסף</button>
            </div>
-           <button class="sub-accordion" onclick="toggleSub(this)">👶 שמות ולינקים לילדים <span>▼</span></button>
-           <div class="sub-panel" id="manageChildren"></div>
-           <button class="sub-accordion" onclick="toggleSub(this)">📝 עריכת משימות <span>▼</span></button>
-           <div class="sub-panel" id="manageTasks"></div>
-           <button class="sub-accordion" onclick="toggleSub(this)">🎁 עריכת פרסים <span>▼</span></button>
-           <div class="sub-panel" id="manageRewards"></div>
-           <button class="sub-accordion" onclick="toggleSub(this)">⏰ איפוס יומי <span>▼</span></button>
-           <div class="sub-panel"><button class="btn-show-more" style="color:red; border-color:red" onclick="manualReset()">איפוס סימוני V</button></div>
+           
+           <h3 style="margin-top:20px;">הוכחות שהגיעו מהילדים:</h3>
+           <div id="proofViewer" style="display:flex; gap:10px; overflow-x:auto; padding:10px; background:#f9f9f9; border-radius:10px;">אין הוכחות חדשות</div>
+
+           <h3>לינקים לילדים:</h3>
+           <div id="manageChildren"></div>
        </div>
    </div>
 </div>
+
+<input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
  
 <script>
    const firebaseConfig = {
@@ -120,14 +119,15 @@
    const urlParams = new URLSearchParams(window.location.search);
    const isAdmin = urlParams.get('admin') === 'true';
    const childIdParam = urlParams.get('child');
+   let currentTaskIdForPhoto = null;
 
-   let state = { activeChild: 0, children: [], tasks: [], rewards: [], quests: [], coops: [], dailyDone: {} };
+   let state = { activeChild: 0, children: [], tasks: [], rewards: [], dailyDone: {}, proofs: {}, wheelClaims: {} };
    let isInitialLoad = true;
 
-   function save() { if(!isInitialLoad) docRef.set(state).catch(err => console.error(err)); }
+   function save() { if(!isInitialLoad) docRef.set(state); }
  
    docRef.onSnapshot((doc) => {
-       if (doc && doc.exists) { 
+       if (doc.exists) { 
            state = doc.data();
            if (childIdParam) {
                const idx = state.children.findIndex(c => c.id == childIdParam);
@@ -135,86 +135,128 @@
            }
        }
        isInitialLoad = false; 
+       checkDarkMode();
        render(); 
    });
+
+   function checkDarkMode() {
+       const hour = new Date().getHours();
+       if (hour >= 19 || hour < 7) document.getElementById('mainBody').classList.add('dark-mode');
+       else document.getElementById('mainBody').classList.remove('dark-mode');
+   }
+
+   function spinWheel() {
+       const cId = state.children[state.activeChild].id;
+       const today = new Date().toDateString();
+       if(state.wheelClaims && state.wheelClaims[cId] === today) {
+           alert("כבר קיבלת מתנה היום! חזור מחר 🎁");
+           return;
+       }
+       const bonus = Math.floor(Math.random() * 15) + 5;
+       state.children[state.activeChild].pts += bonus;
+       if(!state.wheelClaims) state.wheelClaims = {};
+       state.wheelClaims[cId] = today;
+       alert(`זכית בבונוס של ${bonus} נקודות! 🌟`);
+       save(); render();
+   }
+
+   function openCamera(taskId) {
+       currentTaskIdForPhoto = taskId;
+       document.getElementById('cameraInput').click();
+   }
+
+   function handleImageUpload(event) {
+       const file = event.target.files[0];
+       if (!file) return;
+       const reader = new FileReader();
+       reader.onload = function(e) {
+           const base64 = e.target.result;
+           const cId = state.children[state.activeChild].id;
+           if(!state.proofs) state.proofs = {};
+           state.proofs[cId + "_" + currentTaskIdForPhoto] = base64;
+           alert("התמונה נשלחה לאישור ההורים! 📸");
+           save(); render();
+       };
+       reader.readAsDataURL(file);
+   }
  
    function render() {
-       if(!state.children || !state.children[state.activeChild]) return;
+       if(!state.children[state.activeChild]) return;
        const child = state.children[state.activeChild];
        const doneList = state.dailyDone[child.id] || [];
-       const totalFamilyPoints = state.children.reduce((s, c) => s + (c.pts || 0), 0);
- 
-       document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' });
+       
+       document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL', {weekday:'long', day:'numeric', month:'long'});
        document.getElementById('activePoints').innerText = child.pts;
        document.getElementById('activeNameDisplay').innerText = child.name;
+
+       // הישגים (Badges)
+       const badgeCount = doneList.length;
+       let badgesHtml = '';
+       if(badgeCount >= 3) badgesHtml += '<span class="badge">🥉 מתחיל</span>';
+       if(badgeCount >= 7) badgesHtml += '<span class="badge">🥈 מתמיד</span>';
+       if(badgeCount >= 12) badgesHtml += '<span class="badge">🥇 אלוף היום</span>';
+       document.getElementById('badgesArea').innerHTML = badgesHtml;
        
-       // לוגיקת תצוגה: הורה מול ילד
        if (isAdmin) {
            document.getElementById('adminWrapper').style.display = 'block';
            document.getElementById('childrenNav').style.display = 'flex';
            document.getElementById('childrenNav').innerHTML = state.children.map((c, idx) => `<div class="child-tab ${idx===state.activeChild?'active':''}" onclick="state.activeChild=${idx}; render();">${c.name}</div>`).join('');
-       } else {
-           document.getElementById('adminWrapper').style.display = 'none';
-           document.getElementById('childrenNav').style.display = 'none';
-       }
- 
-       // שאר הרינדור (משימות, פרסים וכו')
-       document.getElementById('tasksList').innerHTML = (config.expandedTasks ? state.tasks : state.tasks.slice(0, 5)).map(t => `<div class="list-item ${doneList.includes(t.id)?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val}</small></div><button class="btn-v ${doneList.includes(t.id)?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`).join('');
-       document.getElementById('rewardsList').innerHTML = (config.expandedRewards ? state.rewards : state.rewards.slice(0, 5)).map(r => `<div class="list-item"><div><b>${r.name}</b><br><small>${r.val}💎</small></div><button class="btn-action" onclick="if(state.children[state.activeChild].pts>=${r.val}){state.children[state.activeChild].pts-=${r.val}; render(); save();}else{alert('חסר נקודות');}">פדה</button></div>`).join('');
-       document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="font-size:0.75rem; width:100%;" onclick="advanceQuest(${q.id})">+ התקדמות</button></div>`).join('');
-       document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `<div class="coop-section"><b>🤝 ${c.name}</b> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('');
-
-       if (isAdmin) {
+           
+           // צפייה בהוכחות בניהול
+           const proofKeys = Object.keys(state.proofs || {});
+           document.getElementById('proofViewer').innerHTML = proofKeys.length ? proofKeys.map(k => `<div><img src="${state.proofs[k]}" class="proof-img" onclick="window.open(this.src)"><br><button onclick="delete state.proofs['${k}']; save();" style="font-size:0.6rem;">מחק</button></div>`).join('') : "אין הוכחות חדשות";
+           
            const base = window.location.href.split('?')[0];
-           document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `<div class="manage-row" style="background:#f4f4f4; margin-bottom:5px; padding:10px; border-radius:10px;">
-               <input class="input-edit" style="width:100px" value="${c.name}" onchange="state.children[${i}].name=this.value; save();">
-               <div style="font-size:0.7rem; color:#666; word-break:break-all;">לינק: ${base}?child=${c.id}</div>
-           </div>`).join('');
+           document.getElementById('manageChildren').innerHTML = state.children.map(c => `<div style="font-size:0.8rem; margin:10px 0; border-bottom:1px solid #eee;">${c.name}: ${base}?child=${c.id}</div>`).join('');
        }
 
+       // משימות
+       document.getElementById('tasksList').innerHTML = state.tasks.map(t => {
+           const isDone = doneList.includes(t.id);
+           const hasPhoto = state.proofs && state.proofs[child.id + "_" + t.id];
+           return `<div class="list-item ${isDone?'completed':''}">
+               <div><b>${t.name}</b> <small>+${t.val}</small></div>
+               <div style="display:flex; gap:5px;">
+                   ${t.needPhoto && !isDone ? `<button class="camera-btn" onclick="openCamera(${t.id})">${hasPhoto?'✅📸':'📸'}</button>` : ''}
+                   <button class="btn-v" style="border:1px solid var(--success); background:${isDone?'var(--success)':'none'}; border-radius:50%; width:35px; height:35px;" onclick="toggleTask(${t.id}, ${t.val})">✓</button>
+               </div>
+           </div>`;
+       }).join('');
+
+       // חנות
+       document.getElementById('rewardsList').innerHTML = state.rewards.map(r => `<div class="list-item"><div><b>${r.name}</b><br><small>${r.val}💎</small></div><button onclick="redeem(${r.val})" style="background:var(--accent); border:none; padding:5px 15px; border-radius:15px; font-weight:bold;">פדה</button></div>`).join('');
+
+       // בר התקדמות
        const nextR = state.rewards.filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
        if(nextR) {
            document.getElementById('mainBar').style.width = Math.min((child.pts / nextR.val) * 100, 100) + "%";
-           document.getElementById('nextGoalText').innerText = `המטרה: ${nextR.name} (${nextR.val} נק')`;
+           document.getElementById('nextGoalText').innerText = `יעד: ${nextR.name} (${nextR.val} נק')`;
        }
     }
 
-   let config = { expandedTasks: false, expandedRewards: false };
-   function toggleExpand(t) { if(t==='tasks') config.expandedTasks=!config.expandedTasks; else config.expandedRewards=!config.expandedRewards; render(); }
    function toggleTask(id, v) {
        const c = state.children[state.activeChild];
        if(!state.dailyDone[c.id]) state.dailyDone[c.id] = [];
        const idx = state.dailyDone[c.id].indexOf(id);
        if(idx===-1){ state.dailyDone[c.id].push(id); c.pts+=v; } else { state.dailyDone[c.id].splice(idx,1); c.pts-=v; }
-       render(); save();
+       save(); render();
    }
-   function advanceQuest(id) {
-       const q = state.quests.find(x => x.id === id);
-       if (q && q.current < q.steps) {
-           q.current++;
-           if (q.current >= q.steps) { state.children[state.activeChild].pts += 100; q.current = 0; }
-           render(); save();
-       }
+   function redeem(v) { 
+       const c = state.children[state.activeChild];
+       if(c.pts >= v) { c.pts -= v; save(); render(); } else { alert("אין לך מספיק נקודות..."); }
    }
-   function addNewContent() {
-       const t = document.getElementById('addType').value;
+   function addItem() {
        const n = document.getElementById('addName').value;
+       const t = document.getElementById('addType').value;
+       const v = parseInt(document.getElementById('addVal').value) || 0;
+       const p = document.getElementById('needPhoto').checked;
        if(!n) return;
-       const v = (t==='task')?parseInt(document.getElementById('addDiff').value):parseInt(document.getElementById('addNum').value);
-       if(t==='task') state.tasks.push({id:Date.now(), name:n, val:v});
-       else if(t==='reward') state.rewards.push({id:Date.now(), name:n, val:v});
-       else if(t==='quest') state.quests.push({id:Date.now(), name:n, steps:v, current:0});
-       else if(t==='coop') state.coops.push({id:Date.now(), name:n, goal:v});
-       render(); save();
+       if(t==='task') state.tasks.push({id:Date.now(), name:n, val:v, needPhoto:p});
+       else state.rewards.push({id:Date.now(), name:n, val:v});
+       save(); render();
        document.getElementById('addName').value='';
    }
-   function updateFormFields() {
-       document.getElementById('addDiff').style.display = (document.getElementById('addType').value==='task')?'block':'none';
-       document.getElementById('addNum').style.display = (document.getElementById('addType').value!=='task')?'block':'none';
-   }
    function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
-   function toggleSub(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
-   function manualReset() { if(confirm('לאפס?')) { state.dailyDone = {}; render(); save(); } }
 </script>
 </body>
 </html>
