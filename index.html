@@ -1,226 +1,314 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family Hero Classic Plus 🌟</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #4a90e2; --success: #2ecc71; --bg: #f0f2f5; --text: #2d3436; --card: #ffffff;
-        }
-        
-        body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; direction: rtl; }
-        .container { max-width: 800px; margin: 0 auto; }
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Family Hero 🌟 V14.1</title>
+   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+   
+   <style>
+       :root {
+           --primary: #6c5ce7; --success: #2ecc71; --special: #e84393;
+           --coop: #00cec9; --loot: #f1c40f; --accent: #fdcb6e;
+           --bg: #f8f9fa; --text: #2d3436; --danger: #ff7675;
+           --child-color: #6c5ce7;
+       }
+       
+       body.dark-mode { --bg: #2d3436; --text: #dfe6e9; --primary: #a29bfe; }
+       body.dark-mode .list-item, body.dark-mode .child-tab:not(.active), body.dark-mode .stats-card { 
+           background: #353b48; color: white; border-color: #4b4b4b; 
+       }
+       
+       #adminWrapper { 
+           background: #ffffff !important; color: #2d3436 !important; padding: 20px; border-radius: 20px; 
+           margin-top: 30px; border: 3px solid var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+       }
+       #adminWrapper * { color: #2d3436 !important; }
+       #adminWrapper .accordion { background: #f1f2f6 !important; border: 1px solid #ddd !important; margin-bottom: 5px; cursor: pointer; padding: 15px; border-radius: 12px; width:100%; display:flex; justify-content:space-between; font-weight:bold; border:none; }
+       #adminWrapper .panel { display: none; padding: 15px; background: #fff; border-radius: 0 0 12px 12px; }
 
-        /* לוח הודעות הורים */
-        #parentMessage {
-            background: linear-gradient(135deg, #fff9c4, #fff176);
-            border-right: 8px solid #fbc02d;
-            padding: 15px; border-radius: 15px; margin: 10px 0 20px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center; font-weight: 800; font-size: 1.1rem; color: #5f4b00;
-        }
+       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.5s; }
+       .container { max-width: 1100px; margin: 0 auto; }
+       
+       .children-nav { display: flex; gap: 12px; overflow-x: auto; padding: 15px 0; justify-content: center; }
+       .child-tab { background: white; padding: 12px 25px; border-radius: 50px; cursor: pointer; border: 2px solid #eee; font-weight: bold; }
+       .child-tab.active { border-color: var(--child-color); background: var(--child-color); color: white !important; transform: scale(1.1); }
 
-        /* ניווט ילדים */
-        .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; justify-content: center; }
-        .child-tab { 
-            background: var(--card); padding: 10px 20px; border-radius: 30px; 
-            cursor: pointer; border: 1px solid #ddd; font-weight: bold; white-space: nowrap;
-        }
-        .child-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+       .stats-card { background: linear-gradient(135deg, var(--child-color), #341f97); color: white; padding: 30px; border-radius: 30px; margin: 15px 0; text-align: center; position: relative; }
+       .treasure-box { font-size: 4rem; font-weight: 900; }
+       
+       .wheel-btn { 
+           display: none; margin-top: 15px; background: var(--loot); color: #2d3436; 
+           border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; 
+           cursor: pointer; animation: pulse 1.5s infinite; 
+       }
+       @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
-        /* כרטיס סטטיסטיקה */
-        .stats-card { 
-            background: var(--card); padding: 20px; border-radius: 20px; 
-            text-align: center; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-        }
-        .rank-badge { 
-            display: inline-block; padding: 4px 15px; background: #6c5ce7; 
-            color: white; border-radius: 50px; font-weight: 800; font-size: 0.85rem; margin-bottom: 10px;
-        }
-        .diamond-count { font-size: 3.5rem; font-weight: 900; color: var(--primary); margin: 5px 0; line-height: 1; }
-        
-        .level-progress-container { width: 100%; height: 10px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .level-progress-bar { height: 100%; background: #2ecc71; width: 0%; transition: 1s; }
+       .list-item { background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-right: 6px solid transparent; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+       .list-item.completed { background-color: rgba(46, 204, 113, 0.1); border-right-color: var(--success); }
+       .list-item.completed b { text-decoration: line-through; opacity: 0.6; }
 
-        /* רשימות - תיקון פריסה */
-        .grid { display: flex; flex-direction: row; gap: 15px; align-items: flex-start; }
-        .grid > section { flex: 1; }
-        @media (max-width: 600px) { .grid { flex-direction: column; } .grid > section { width: 100%; } }
+       .btn-v { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--success); background: none; color: var(--success); cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; position: relative; }
+       .btn-v.done { background: var(--success); color: white; border: none; }
+       .btn-v.needs-camera::after { content: '📷'; font-size: 0.7rem; position: absolute; bottom: -5px; background: white; border-radius: 50%; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-        .list-item { 
-            background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #eee;
-        }
-        .list-item.completed { background: #f9f9f9; opacity: 0.8; }
-        .list-item.completed b { text-decoration: line-through; color: #999; }
-
-        .btn-check { 
-            width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--success);
-            background: none; color: var(--success); font-size: 1.2rem; cursor: pointer;
-        }
-        .btn-check.done { background: var(--success); color: white; }
-
-        #adminPanel { background: #333; color: white; padding: 20px; border-radius: 20px; margin-top: 40px; display: none; }
-        .admin-section { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        input { padding: 8px; border-radius: 5px; border: none; margin: 2px; }
-    </style>
+       .proof-card { text-align: center; min-width: 100px; background: #f9f9f9; padding: 8px; border-radius: 10px; border: 1px solid #ddd; }
+       .proof-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+       .manage-row { display: flex; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+       .input-edit { padding: 8px; border-radius: 6px; border: 1px solid #ccc; flex: 1; }
+   </style>
 </head>
-<body>
+<body id="mainBody">
 
 <div class="container">
-    <header style="text-align: center; padding: 10px;">
-        <h1 style="margin:0; font-size: 1.8rem;">Family Hero 🌟</h1>
-    </header>
+   <header style="text-align: center;">
+       <h1 style="margin: 0; color: var(--primary);">Family Hero 🌟</h1>
+       <div id="dateDisplay" style="font-weight: bold; opacity: 0.8;"></div>
+   </header>
 
-    <div id="childrenNav" class="children-nav"></div>
-    <div id="parentMessage" style="display:none;"></div>
+   <div id="childrenNav" class="children-nav"></div>
+   <div id="coopArea"></div>
 
-    <div class="stats-card">
-        <div id="rankDisplay" class="rank-badge">טוען...</div>
-        <div style="font-weight: bold;">היהלומים של <span id="activeName"></span></div>
-        <div id="pointsDisplay" class="diamond-count">0</div>
-        
-        <div class="level-progress-container"><div id="levelBar" class="level-progress-bar"></div></div>
-        <div id="levelInfo" style="font-size: 0.8rem; margin-top: 5px;"></div>
-    </div>
+   <div class="stats-card" id="mainStatsCard">
+       <span style="font-size: 1.3rem; font-weight: bold;">💎 תיבת האוצר של <span id="activeNameDisplay">...</span></span>
+       <div id="activePoints" class="treasure-box">0</div>
+       
+       <div style="width:100%; height:14px; background:rgba(255,255,255,0.2); border-radius:10px; margin:10px 0; overflow:hidden;">
+           <div id="mainBar" style="height:100%; transition:1s; background:var(--accent); width: 0%;"></div>
+       </div>
+       <small id="nextGoalText" style="font-weight: bold; display: block; margin-bottom: 10px;"></small>
 
-    <div class="grid">
-        <section>
-            <h3 style="text-align: center;">✅ משימות</h3>
-            <div id="tasksList"></div>
-        </section>
-        <section>
-            <h3 style="text-align: center;">🎁 פרסים</h3>
-            <div id="rewardsList"></div>
-        </section>
-    </div>
+       <!-- גלגל המזל -->
+       <button id="wheelBtn" class="wheel-btn" onclick="spinWheel()">🎡 בונוס גלגל המזל!</button>
+   </div>
 
-    <!-- פאנל ניהול -->
-    <div id="adminPanel">
-        <h3>🛠️ ניהול הורים</h3>
-        <div class="admin-section">
-            <label>הודעת עידוד:</label><br>
-            <input type="text" id="newParentMsg" style="width:70%"><button onclick="updateMessage()">עדכן</button>
-        </div>
-        <div class="admin-section">
-            <div id="adminTasks"></div>
-            <button onclick="addTask()">+ משימה</button>
-        </div>
-        <div class="admin-section">
-            <div id="adminChildren"></div>
-        </div>
-        <button onclick="dailyReset()" style="width:100%; padding:10px; background:red; color:white; border:none; border-radius:10px;">איפוס יומי</button>
-    </div>
+   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+       <div>
+           <h2 style="color: var(--primary);">📅 משימות היום</h2>
+           <div id="tasksList"></div>
+           <h3 style="color: var(--special); margin-top: 25px;">🔥 פרויקטים</h3>
+           <div id="questsList"></div>
+       </div>
+       <div>
+           <h2 style="color: var(--loot);">💎 פרסים</h2>
+           <div id="rewardsList"></div>
+       </div>
+   </div>
+
+   <div id="adminWrapper" style="display:none;">
+       <h2 style="text-align:center;">🛠️ ניהול הורים</h2>
+       <button class="accordion" onclick="toggleAcc(this)">➕ הוספה מהירה <span>▼</span></button>
+       <div class="panel">
+           <div style="display:flex; gap:5px; flex-wrap:wrap;">
+               <select id="addType"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">אתגר משפחתי</option></select>
+               <input type="text" id="addName" placeholder="שם..." style="flex:1;">
+               <input type="number" id="addVal" placeholder="ערך" style="width:70px;">
+               <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:5px;">הוסף</button>
+           </div>
+       </div>
+
+       <button class="accordion" onclick="toggleAcc(this)">📝 עריכת משימות ופרסים <span>▼</span></button>
+       <div class="panel"><div id="manageTasks"></div><hr><h4>פרסים</h4><div id="manageRewards"></div></div>
+
+       <button class="accordion" onclick="toggleAcc(this)">🚀 פרויקטים ואתגרים <span>▼</span></button>
+       <div class="panel"><div id="manageQuests"></div><hr><h4>אתגרים משפחתיים</h4><div id="manageCoops"></div></div>
+
+       <button class="accordion" onclick="toggleAcc(this)">📸 צילומי הוכחה <span>▼</span></button>
+       <div class="panel">
+           <div id="proofViewer" style="display:flex; gap:10px; overflow-x:auto;"></div>
+           <button onclick="state.proofs={};save();render();" style="width:100%; margin-top:10px;">🧹 נקה הכל</button>
+       </div>
+
+       <button class="accordion" onclick="toggleAcc(this)">👶 ניקוד ילדים <span>▼</span></button>
+       <div class="panel" id="manageChildren"></div>
+       
+       <button onclick="if(confirm('לאפס יום?')){state.dailyDone={};state.proofs={};state.wheelDone={};save();render();}" style="width:100%; margin-top:15px; padding:12px; background:var(--danger); color:white; border:none; border-radius:10px; font-weight:bold;">⏰ איפוס יומי</button>
+   </div>
 </div>
 
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
-        authDomain: "family-hero-3a3fd.firebaseapp.com",
-        projectId: "family-hero-3a3fd",
-        storageBucket: "family-hero-3a3fd.firebasestorage.app",
-        messagingSenderId: "882400699018",
-        appId: "1:882400699018:web:08af27dde50e387ea10373"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    // שימוש בכתובת המקורית כדי שהנתונים שלך יופיעו
-    const docRef = db.collection("data").doc("family_hero_state");
+   const firebaseConfig = {
+       apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
+       authDomain: "family-hero-3a3fd.firebaseapp.com",
+       projectId: "family-hero-3a3fd",
+       storageBucket: "family-hero-3a3fd.firebasestorage.app",
+       messagingSenderId: "882400699018",
+       appId: "1:882400699018:web:08af27dde50e387ea10373"
+   };
+   firebase.initializeApp(firebaseConfig);
+   const db = firebase.firestore();
+   const docRef = db.collection("data").doc("v875_main_state");
 
-    let state = { activeChild: 0, children: [], tasks: [], rewards: [], dailyDone: {}, parentMsg: "" };
-    let isInitialLoad = true;
-    const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+   const urlParams = new URLSearchParams(window.location.search);
+   const isAdmin = urlParams.get('admin') === 'true';
+   const childColors = ["#6c5ce7", "#e84393", "#00cec9", "#f1c40f", "#ff7675"];
 
-    function getRank(pts) {
-        if (pts < 200) return { title: "טירון 🌱", next: 200 };
-        if (pts < 600) return { title: "אביר מתלמד ⚔️", next: 600 };
-        if (pts < 1500) return { title: "גיבור הבית 🛡️", next: 1500 };
-        return { title: "אגדה 🔥", next: 5000 };
-    }
+   let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{} };
+   let pendingTaskId = null;
+   let isInitialLoad = true;
 
-    docRef.onSnapshot(doc => {
-        if (doc.exists) { state = doc.data(); isInitialLoad = false; render(); }
-    });
+   function save() { if(!isInitialLoad) docRef.set(state); }
 
-    function save() { if (!isInitialLoad) docRef.set(state); }
+   docRef.onSnapshot(doc => {
+       if(doc.exists) state = doc.data();
+       if(!state.wheelDone) state.wheelDone = {}; // הגנה למקרה שהשדה חסר ב-DB
+       isInitialLoad = false;
+       const h = new Date().getHours();
+       document.getElementById('mainBody').classList.toggle('dark-mode', h >= 19 || h < 7);
+       render();
+   });
 
-    function render() {
-        if (!state.children.length) return;
-        const child = state.children[state.activeChild];
-        const doneList = state.dailyDone[child.id] || [];
+   function render() {
+       if(!state.children || !state.children[state.activeChild]) return;
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       const totalFamPts = (state.children||[]).reduce((a,b)=>a+(b.pts||0),0);
+       
+       document.documentElement.style.setProperty('--child-color', childColors[state.activeChild % childColors.length]);
+       document.getElementById('activePoints').innerText = child.pts;
+       document.getElementById('activeNameDisplay').innerText = child.name;
+       document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
 
-        // הודעת הורים
-        const msgDiv = document.getElementById('parentMessage');
-        if (state.parentMsg) { msgDiv.innerText = "📣 " + state.parentMsg; msgDiv.style.display = "block"; }
-        else { msgDiv.style.display = "none"; }
+       const nextReward = (state.rewards||[]).filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0];
+       if(nextReward) {
+           const gap = nextReward.val - child.pts;
+           document.getElementById('nextGoalText').innerText = `היעד הבא: ${nextReward.name} (עוד ${gap} נקודות)`;
+           document.getElementById('mainBar').style.width = Math.min((child.pts / nextReward.val) * 100, 100) + "%";
+       } else {
+           document.getElementById('nextGoalText').innerText = "כל הכבוד! הגעת לכל היעדים!";
+           document.getElementById('mainBar').style.width = "100%";
+       }
 
-        // סטטיסטיקה
-        const rank = getRank(child.pts);
-        document.getElementById('rankDisplay').innerText = rank.title;
-        document.getElementById('pointsDisplay').innerText = child.pts;
-        document.getElementById('activeName').innerText = child.name;
-        document.getElementById('levelBar').style.width = Math.min((child.pts/rank.next)*100, 100) + "%";
-        document.getElementById('levelInfo').innerText = `עוד ${rank.next - child.pts} לדרגה הבאה`;
+       // הצגת גלגל המזל - רק אם ביצע 7 משימות וגם לא השתמש בגלגל היום
+       const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
+       document.getElementById('wheelBtn').style.display = (done.length >= 7 && !hasUsedWheel) ? 'inline-block' : 'none';
 
-        // ניווט
-        document.getElementById('childrenNav').innerHTML = state.children.map((c, i) => `
-            <div class="child-tab ${i === state.activeChild ? 'active' : ''}" onclick="state.activeChild=${i};render();">${c.name}</div>
-        `).join('');
+       if(isAdmin){
+           document.getElementById('adminWrapper').style.display = 'block';
+           document.getElementById('childrenNav').innerHTML = state.children.map((c,i)=>`
+               <div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
+           renderAdmin();
+       }
 
-        // רשימות
-        document.getElementById('tasksList').innerHTML = state.tasks.map(t => `
-            <div class="list-item ${doneList.includes(t.id) ? 'completed' : ''}">
-                <div onclick="openCam(${t.id})">📸 <b>${t.name}</b></div>
-                <button class="btn-check ${doneList.includes(t.id) ? 'done' : ''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button>
-            </div>`).join('');
+       document.getElementById('tasksList').innerHTML = (state.tasks||[]).map(t => `
+           <div class="list-item ${done.includes(t.id)?'completed':''}">
+               <div><b>${t.name}</b> <small>(+${t.val})</small></div>
+               <button class="btn-v ${done.includes(t.id)?'done':''} ${t.needsProof?'needs-camera':''}" 
+                       onclick="handleTaskClick(${t.id},${t.val},${t.needsProof||false})">✓</button>
+           </div>`).join('');
 
-        document.getElementById('rewardsList').innerHTML = state.rewards.map(r => `
-            <div class="list-item">
-                <b>${r.name} (${r.val})</b>
-                <button onclick="buy(${r.val})" style="background:var(--primary); color:white; border:none; padding:5px 10px; border-radius:8px;">פדה</button>
-            </div>`).join('');
+       document.getElementById('rewardsList').innerHTML = (state.rewards||[]).map(r => `
+           <div class="list-item"><div><b>${r.name}</b> <br><small>${r.val} 💎</small></div>
+           <button onclick="buy(${r.val})" style="background:var(--accent); border:none; padding:8px 15px; border-radius:20px; font-weight:bold;">פדה</button></div>`).join('');
 
-        if (isAdmin) { document.getElementById('adminPanel').style.display = 'block'; renderAdmin(); }
-    }
+       document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `
+           <div class="list-item" style="flex-direction:column; align-items:start;">
+               <div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
+               <div style="width:100%; height:8px; background:rgba(0,0,0,0.05); border-radius:5px; margin:5px 0;"><div style="width:${((q.current||0)/q.steps)*100}%; height:100%; background:var(--special); border-radius:5px;"></div></div>
+               <button onclick="advQuest(${q.id})" style="width:100%; background:none; border:1px solid #ddd; border-radius:5px; font-size:0.7rem;">התקדמות +</button>
+           </div>`).join('');
 
-    function toggleTask(id, v) {
-        const cid = state.children[state.activeChild].id;
-        if (!state.dailyDone[cid]) state.dailyDone[cid] = [];
-        if (state.dailyDone[cid].includes(id)) {
-            state.dailyDone[cid].splice(state.dailyDone[cid].indexOf(id), 1);
-            state.children[state.activeChild].pts -= v;
-        } else {
-            state.dailyDone[cid].push(id);
-            state.children[state.activeChild].pts += v;
-            confetti();
-        }
-        save(); render();
-    }
+       document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `
+           <div style="background:white; color:#2d3436; padding:15px; border-radius:20px; border-right:8px solid var(--coop); margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+               <div style="display:flex; justify-content:space-between;"><b>🤝 ${c.name}</b> <span>${totalFamPts}/${c.goal}</span></div>
+               <div style="width:100%; height:8px; background:rgba(0,0,0,0.1); border-radius:5px; margin:5px 0;"><div style="width:${Math.min((totalFamPts/c.goal)*100,100)}%; height:100%; background:var(--coop); border-radius:5px;"></div></div>
+           </div>`).join('');
+   }
 
-    function updateMessage() { state.parentMsg = document.getElementById('newParentMsg').value; save(); render(); }
-    function openCam(id) { document.getElementById('cameraInput').click(); }
-    function handleImageUpload(e) { alert("התמונה נשלחה!"); }
-    function buy(v) { 
-        if (state.children[state.activeChild].pts >= v) {
-            state.children[state.activeChild].pts -= v; save(); render(); confetti();
-        } else { alert("אין לך מספיק יהלומים!"); }
-    }
-    
-    function renderAdmin() {
-        document.getElementById('adminChildren').innerHTML = state.children.map((c, i) => `
-            <div>${c.name}: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save()"></div>
-        `).join('');
-    }
-    function dailyReset() { state.dailyDone = {}; save(); render(); }
+   function spinWheel() {
+       const child = state.children[state.activeChild];
+       if(state.wheelDone && state.wheelDone[child.id]) return; // הגנה נוספת
+
+       const bonus = [10, 20, 30, 40, 50][Math.floor(Math.random()*5)];
+       alert("הגלגל מסתובב... מזל טוב! זכית ב-" + bonus + " נקודות בונוס!");
+       
+       child.pts += bonus;
+       if(!state.wheelDone) state.wheelDone = {};
+       state.wheelDone[child.id] = true; // סימון שהילד השתמש בגלגל היום
+
+       confetti({ particleCount: 200, spread: 90 });
+       save(); render();
+   }
+
+   function renderAdmin() {
+       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `
+           <div class="manage-row"><input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
+           <button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button>
+           <input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
+           <button onclick="state.tasks.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+
+       document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `
+           <div class="manage-row"><input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
+           <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
+           <button onclick="state.rewards.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+
+       document.getElementById('manageQuests').innerHTML = (state.quests||[]).map((q,i) => `
+           <div class="manage-row"><input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save()">
+           <input type="number" style="width:40px" value="${q.steps}" onchange="state.quests[${i}].steps=parseInt(this.value);save()">
+           <button onclick="state.quests.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+
+       document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `
+           <div class="manage-row"><input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save()">
+           <input type="number" style="width:50px" value="${c.goal}" onchange="state.coops[${i}].goal=parseInt(this.value);save()">
+           <button onclick="state.coops.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+
+       const proofs = state.proofs || {};
+       document.getElementById('proofViewer').innerHTML = Object.entries(proofs).map(([id, p]) => `
+           <div class="proof-card"><img src="${p.img}" class="proof-img" onclick="window.open(this.src)"><br><small>${p.by}</small><br>
+           <button onclick="delete state.proofs['${id}'];save();render();" style="font-size:0.6rem;">מחק</button></div>`).join('') || "אין צילומים";
+
+       document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
+           <div class="manage-row"><b>${c.name}</b>: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></div>`).join('');
+   }
+
+   function handleTaskClick(id, val, needsProof) {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       if(done.includes(id)) {
+           const idx = done.indexOf(id); state.dailyDone[child.id].splice(idx,1);
+           child.pts = Math.max(0, child.pts - val); save(); render(); return;
+       }
+       if(needsProof) { pendingTaskId={id, val}; document.getElementById('cameraInput').click(); }
+       else { completeTask(id, val); }
+   }
+
+   function handleImageUpload(event) {
+       const file = event.target.files[0]; if(!file) return;
+       const reader = new FileReader();
+       reader.onload = function(e) {
+           const child = state.children[state.activeChild]; if(!state.proofs) state.proofs={};
+           state.proofs[Date.now()] = { img: e.target.result, by: child.name, task: pendingTaskId.id };
+           completeTask(pendingTaskId.id, pendingTaskId.val); pendingTaskId=null;
+       };
+       reader.readAsDataURL(file);
+   }
+
+   function completeTask(id, val) {
+       const child = state.children[state.activeChild];
+       if(!state.dailyDone[child.id]) state.dailyDone[child.id]=[];
+       state.dailyDone[child.id].push(id); child.pts+=val;
+       confetti({ particleCount:100, spread:70, origin:{y:0.6} }); save(); render();
+   }
+
+   function addItem() {
+       const t = document.getElementById('addType').value;
+       const n = document.getElementById('addName').value;
+       const v = parseInt(document.getElementById('addVal').value) || 0;
+       if(!n) return;
+       if(t=='task') state.tasks.push({id:Date.now(), name:n, val:v, needsProof:false});
+       else if(t=='reward') state.rewards.push({id:Date.now(), name:n, val:v});
+       else if(t=='quest') state.quests.push({id:Date.now(), name:n, steps:v, current:0});
+       else if(t=='coop') state.coops.push({id:Date.now(), name:n, goal:v});
+       save(); render(); document.getElementById('addName').value=''; document.getElementById('addVal').value='';
+   }
+
+   function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display==='block'?'none':'block'; }
+   function buy(v) { const c = state.children[state.activeChild]; if(c.pts>=v && confirm("פדה?")){ c.pts-=v; save(); render(); confetti(); }}
+   function advQuest(id) { const q = state.quests.find(x=>x.id==id); if(q && q.current < q.steps){ q.current++; if(q.current>=q.steps){ state.children[state.activeChild].pts+=100; q.current=0; } save(); render(); }}
 </script>
 </body>
 </html>
