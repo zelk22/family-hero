@@ -3,10 +3,9 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V12.0</title>
+   <title>Family Hero 🌟 V13.1</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-   <!-- ספריית נצנצים חיצונית קלה -->
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
    
    <style>
@@ -16,110 +15,113 @@
            --bg: #f8f9fa; --text: #2d3436; --danger: #ff7675;
        }
        body.dark-mode { --bg: #2d3436; --text: #dfe6e9; --primary: #a29bfe; }
-       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.5s; overflow-x: hidden; }
+       body.dark-mode .list-item, body.dark-mode .child-tab, body.dark-mode .panel, body.dark-mode .sub-panel, body.dark-mode .stats-card { 
+           background: #353b48; color: white; border-color: #4b4b4b; 
+       }
+       
+       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.5s; }
        .container { max-width: 1100px; margin: 0 auto; }
        
-       /* ניווט ילדים */
        .children-nav { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-       .child-tab { background: white; padding: 12px 25px; border-radius: 20px; cursor: pointer; border: 2px solid #eee; font-weight: bold; transition: 0.3s; }
-       .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); }
+       .child-tab { background: white; padding: 10px 20px; border-radius: 15px; cursor: pointer; border: 2px solid #eee; font-weight: bold; white-space: nowrap; }
+       .child-tab.active { border-color: var(--primary); background: var(--primary); color: white; }
 
-       /* כרטיסיית ניקוד */
-       .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 30px; margin: 10px 0; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-       .treasure-box { font-size: 4rem; font-weight: 900; text-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
+       .stats-card { background: linear-gradient(135deg, #a29bfe, #6c5ce7); color: white; padding: 25px; border-radius: 25px; margin: 10px 0; text-align: center; }
+       .treasure-box { font-size: 3.5rem; font-weight: 900; }
        
-       /* רשימות */
-       .list-item { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-right: 6px solid transparent; transition: 0.4s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-       .list-item.completed { background-color: rgba(46, 204, 113, 0.1); border-right-color: var(--success); transform: scale(0.98); }
-       .list-item.completed b { text-decoration: line-through; opacity: 0.4; }
+       .list-item { background: white; border-radius: 15px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-right: 5px solid transparent; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+       .list-item.completed { background-color: rgba(46, 204, 113, 0.15); border-right-color: var(--success); }
+       .list-item.completed b { text-decoration: line-through; opacity: 0.5; }
 
-       /* כפתור בונוס מותנה */
-       .wheel-area { margin: 15px 0; text-align: center; }
-       .wheel-btn { width: 100%; padding: 15px; border-radius: 50px; border: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; position: relative; }
+       .wheel-btn { width: 100%; padding: 15px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; margin: 10px 0; }
        .wheel-btn.locked { background: #d1d8e0; color: #7f8c8d; cursor: not-allowed; }
-       .wheel-btn.unlocked { background: var(--special); color: white; animation: pulse 1.5s infinite; box-shadow: 0 0 20px rgba(232, 67, 147, 0.4); }
-       @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.03);} 100% {transform: scale(1);} }
+       .wheel-btn.unlocked { background: var(--special); color: white; box-shadow: 0 0 15px rgba(232, 67, 147, 0.4); animation: pulse 1.5s infinite; }
+       @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.02);} 100% {transform: scale(1);} }
 
-       .bar-bg { width: 100%; height: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; margin: 8px 0; overflow: hidden; }
-       .bar-fill { height: 100%; transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+       .bar-bg { width: 100%; height: 12px; background: rgba(0,0,0,0.1); border-radius: 10px; margin: 8px 0; overflow: hidden; }
+       .bar-fill { height: 100%; transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-       /* ניהול */
-       #adminWrapper { display: none; margin-top: 30px; }
-       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
-       .panel { display: none; padding: 20px; background: white; border: 1px solid #ddd; border-radius: 0 0 20px 20px; }
-       .sub-accordion { background: #f9f9f9; padding: 12px; width: 100%; border: 1px solid #eee; border-radius: 10px; cursor: pointer; margin-bottom: 8px; font-weight: bold; text-align: right; }
-       .sub-panel { display: none; padding: 10px; border: 1px solid #eee; margin-bottom: 10px; border-radius: 10px; }
-       .manage-row { display: flex; gap: 10px; align-items: center; padding: 10px; border-bottom: 1px solid #f1f1f1; }
-
-       .btn-v { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--success); background: none; color: var(--success); cursor: pointer; font-size: 1.3rem; transition: 0.3s; }
-       .btn-v.done { background: var(--success); color: white; transform: rotate(360deg); }
+       .accordion { background: #eee; padding: 15px; width: 100%; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 20px; display: flex; justify-content: space-between; }
+       .panel { display: none; padding: 15px; background: white; border: 1px solid #ddd; border-radius: 0 0 12px 12px; }
+       .sub-accordion { background: #f9f9f9; padding: 10px; width: 100%; border: 1px solid #eee; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-weight: bold; text-align: right; }
+       .sub-panel { display: none; padding: 10px; border: 1px solid #eee; margin-bottom: 10px; border-radius: 8px; }
+       .manage-row { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+       .input-edit { padding: 6px; border-radius: 5px; border: 1px solid #ddd; flex: 1; min-width: 100px; }
        
-       #childrenNav { display: none; }
+       .btn-v { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--success); background: none; color: var(--success); cursor: pointer; font-size: 1.2rem; }
+       .btn-v.done { background: var(--success); color: white; border: none; }
+       #adminWrapper, #childrenNav { display: none; }
    </style>
 </head>
 <body id="mainBody">
 
 <div class="container">
-   <header style="text-align: center; padding: 10px 0;">
-       <h1 style="margin: 0; font-size: 2rem;">Family Hero 🌟</h1>
-       <div id="dateDisplay" style="opacity: 0.6;"></div>
+   <header style="text-align: center;">
+       <h1 style="margin: 0; color: var(--primary);">Family Hero 🌟</h1>
+       <div id="dateDisplay" style="opacity: 0.7; font-size: 0.9rem;"></div>
    </header>
 
    <div id="childrenNav" class="children-nav"></div>
    <div id="coopArea"></div>
 
-   <!-- אזור הבונוס החדש -->
    <div class="wheel-area">
-       <button id="dailyWheel" class="wheel-btn locked" onclick="spinWheel()">
-           🎁 מתנת היום (נעול)
-       </button>
-       <div id="bonusProgressText" style="font-size: 0.85rem; margin-top: 8px; font-weight: bold; color: var(--special);"></div>
+       <button id="dailyWheel" class="wheel-btn locked" onclick="spinWheel()">🎁 מתנת היום (נעול)</button>
+       <div id="bonusProgressText" style="text-align:center; font-size: 0.8rem; font-weight: bold; color: var(--special);"></div>
    </div>
 
    <div class="stats-card">
-       <div id="badgesArea"></div>
-       <div style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 5px;">הקופה של <span id="activeNameDisplay">...</span></div>
+       <span style="font-size: 1rem; opacity: 0.9;">הקופה של <span id="activeNameDisplay">...</span></span>
        <div id="activePoints" class="treasure-box">0</div>
-       <div class="bar-bg" style="background:rgba(255,255,255,0.2); height:16px;"><div id="mainBar" class="bar-fill" style="background:var(--accent); width: 0%;"></div></div>
-       <small id="nextGoalText" style="font-weight: bold; letter-spacing: 0.5px;"></small>
+       <div class="bar-bg" style="background:rgba(255,255,255,0.2); height:15px;"><div id="mainBar" class="bar-fill" style="background:var(--accent); width: 0%;"></div></div>
+       <small id="nextGoalText" style="font-weight: bold;"></small>
    </div>
 
    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" class="main-grid">
        <div class="section">
-           <h2 style="color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 5px;">📅 משימות</h2>
+           <h2 style="color: var(--primary);">📅 משימות</h2>
            <div id="tasksList"></div>
-           <h3 style="color: var(--special); margin-top:25px;">🔥 פרויקטים</h3>
+           <h3 style="color: var(--special); margin-top: 20px;">🔥 פרויקטים</h3>
            <div id="questsList"></div>
        </div>
        <div class="section">
-           <h2 style="color: var(--loot); border-bottom: 2px solid #eee; padding-bottom: 5px;">💎 חנות</h2>
+           <h2 style="color: var(--loot);">💎 פרסים</h2>
            <div id="rewardsList"></div>
        </div>
    </div>
 
    <div id="adminWrapper">
-       <button class="accordion" onclick="toggleAcc(this)">⚙️ הגדרות הורה <span>▼</span></button>
+       <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול הורים מלא <span>▼</span></button>
        <div class="panel">
-           <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספה מהירה <span>▼</span></div>
+           
+           <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן חדש <span>▼</span></div>
            <div class="sub-panel">
-               <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                   <select id="addType"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option></select>
-                   <input type="text" id="addName" placeholder="שם..." style="flex:1; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                   <input type="number" id="addVal" placeholder="נק'" style="width:60px; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                   <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer;">שמור</button>
+               <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                   <select id="addType"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">אתגר משפחתי</option></select>
+                   <input type="text" id="addName" placeholder="שם..." style="flex:2;">
+                   <input type="number" id="addVal" placeholder="ערך" style="width:60px;">
+                   <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:5px;">שמור</button>
                </div>
            </div>
-           
-           <div class="sub-accordion" onclick="toggleSub(this)">📸 צילומים מהילדים <span>▼</span></div>
-           <div id="proofViewer" class="sub-panel" style="display:flex; gap:10px; overflow-x:auto;">אין צילומים</div>
+
+           <div class="sub-accordion" onclick="toggleSub(this)">📸 אישור הוכחות צילום <span>▼</span></div>
+           <div class="sub-panel" id="proofViewer" style="display:flex; gap:10px; overflow-x:auto;">אין הוכחות</div>
 
            <div class="sub-accordion" onclick="toggleSub(this)">📝 ניהול משימות <span>▼</span></div>
-           <div id="manageTasks" class="sub-panel"></div>
+           <div class="sub-panel" id="manageTasks"></div>
 
-           <div class="sub-accordion" onclick="toggleSub(this)">🎁 ניהול חנות <span>▼</span></div>
-           <div id="manageRewards" class="sub-panel"></div>
+           <div class="sub-accordion" onclick="toggleSub(this)">🔥 ניהול פרויקטים <span>▼</span></div>
+           <div class="sub-panel" id="manageQuests"></div>
 
-           <button class="sub-accordion" style="color:var(--danger)" onclick="if(confirm('לאפס V להיום?')){state.dailyDone={};save();render();}">⏰ איפוס V יומי</button>
+           <div class="sub-accordion" onclick="toggleSub(this)">🎁 ניהול פרסים <span>▼</span></div>
+           <div class="sub-panel" id="manageRewards"></div>
+
+           <div class="sub-accordion" onclick="toggleSub(this)">🤝 ניהול אתגר משפחתי <span>▼</span></div>
+           <div class="sub-panel" id="manageCoops"></div>
+
+           <div class="sub-accordion" onclick="toggleSub(this)">👶 ניהול ילדים וניקוד <span>▼</span></div>
+           <div class="sub-panel" id="manageChildren"></div>
+
+           <button class="sub-accordion" style="color:var(--danger)" onclick="if(confirm('לאפס V להיום?')){state.dailyDone={};save();render();}">⏰ איפוס יומי ידני</button>
        </div>
    </div>
 </div>
@@ -142,7 +144,7 @@
    const urlParams = new URLSearchParams(window.location.search);
    const isAdmin = urlParams.get('admin') === 'true';
    const childIdParam = urlParams.get('child');
-   let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], dailyDone:{}, proofs:{}, wheelClaims:{} };
+   let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelClaims:{} };
    let isInitialLoad = true;
    let curTaskPhoto = null;
 
@@ -157,37 +159,37 @@
            }
        }
        isInitialLoad = false;
+       checkMode();
        render();
    });
+
+   function checkMode() {
+       const h = new Date().getHours();
+       document.getElementById('mainBody').classList.toggle('dark-mode', h>=19 || h<7);
+   }
 
    function render() {
        if(!state.children || !state.children[state.activeChild]) return;
        const child = state.children[state.activeChild];
        const done = state.dailyDone[child.id] || [];
-       
+       const totalFamPts = state.children.reduce((a,b)=>a+(b.pts||0),0);
+
        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
        document.getElementById('activePoints').innerText = child.pts;
        document.getElementById('activeNameDisplay').innerText = child.name;
 
-       // לוגיקת בונוס (7 משימות)
+       // לוגיקת בונוס
        const bonusBtn = document.getElementById('dailyWheel');
        const progressText = document.getElementById('bonusProgressText');
-       const tasksDoneCount = done.length;
        const today = new Date().toDateString();
-       const alreadyClaimed = state.wheelClaims && state.wheelClaims[child.id] === today;
-
-       if(alreadyClaimed) {
-           bonusBtn.className = "wheel-btn locked";
-           bonusBtn.innerText = "✅ הבונוס התקבל! חזור מחר";
-           progressText.innerText = "";
-       } else if(tasksDoneCount >= 7) {
-           bonusBtn.className = "wheel-btn unlocked";
-           bonusBtn.innerText = "🌟 פתח את מתנת היום!";
-           progressText.innerText = "כל הכבוד! עשית 7 משימות!";
+       const claimed = state.wheelClaims && state.wheelClaims[child.id] === today;
+       
+       if(claimed) {
+           bonusBtn.className = "wheel-btn locked"; bonusBtn.innerText = "✅ המתנה התקבלה!"; progressText.innerText = "";
+       } else if(done.length >= 7) {
+           bonusBtn.className = "wheel-btn unlocked"; bonusBtn.innerText = "🌟 פתח את מתנת היום!"; progressText.innerText = "הגעת ל-7 משימות!";
        } else {
-           bonusBtn.className = "wheel-btn locked";
-           bonusBtn.innerText = `🎁 מתנת היום (נעול)`;
-           progressText.innerText = `עוד ${7 - tasksDoneCount} משימות לפתיחת הבונוס!`;
+           bonusBtn.className = "wheel-btn locked"; bonusBtn.innerText = "🎁 מתנת היום (נעול)"; progressText.innerText = `עוד ${7 - done.length} משימות לבונוס`;
        }
 
        if(isAdmin){
@@ -197,81 +199,104 @@
            renderAdminPanels();
        }
 
-       // רינדור משימות
+       // משימות
        document.getElementById('tasksList').innerHTML = state.tasks.map(t => {
            const isDone = done.includes(t.id);
            const hasImg = state.proofs && state.proofs[child.id+"_"+t.id];
            return `<div class="list-item ${isDone?'completed':''}">
                <div><b>${t.name}</b> <small>+${t.val}</small></div>
-               <div style="display:flex; gap:10px;">
-                   ${t.needPhoto && !isDone ? `<button onclick="curTaskPhoto=${t.id};document.getElementById('cameraInput').click()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;">${hasImg?'✅📸':'📸'}</button>` : ''}
+               <div style="display:flex; gap:8px;">
+                   ${t.needPhoto && !isDone ? `<button onclick="curTaskPhoto=${t.id};document.getElementById('cameraInput').click()" style="background:none;border:none;cursor:pointer;font-size:1.2rem;">${hasImg?'✅📸':'📸'}</button>` : ''}
                    <button class="btn-v ${isDone?'done':''}" onclick="toggleTask(${t.id},${t.val}, event)">✓</button>
                </div>
            </div>`;
        }).join('');
 
-       // פרויקטים וחנות (קיצור לחיסכון במקום)
-       document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `<div class="list-item" style="flex-direction:column;align-items:start;"><b>${q.name}</b><div class="bar-bg"><div class="bar-fill" style="background:var(--special);width:${((q.current||0)/q.steps)*100}%"></div></div><button onclick="advQuest(${q.id})" style="width:100%;border:1px solid #ddd;background:none;border-radius:10px;cursor:pointer;">+ התקדמות</button></div>`).join('');
-       document.getElementById('rewardsList').innerHTML = state.rewards.map(r => `<div class="list-item"><b>${r.name} (${r.val}💎)</b><button onclick="buy(${r.val})" style="background:var(--accent);border:none;padding:8px 15px;border-radius:15px;font-weight:bold;cursor:pointer;">פדה</button></div>`).join('');
+       // פרויקטים
+       document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `
+           <div class="list-item" style="flex-direction:column; align-items:start;">
+               <div style="width:100%; display:flex; justify-content:space-between;"><b>🔥 ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
+               <div class="bar-bg"><div class="bar-fill" style="background:var(--special); width:${((q.current||0)/q.steps)*100}%"></div></div>
+               <button onclick="advQuest(${q.id})" style="width:100%; background:none; border:1px solid #ddd; border-radius:8px; font-size:0.8rem; cursor:pointer;">+ התקדמות</button>
+           </div>`).join('');
+
+       // פרסים
+       document.getElementById('rewardsList').innerHTML = state.rewards.map(r => `
+           <div class="list-item">
+               <div><b>${r.name}</b> <br><small>${r.val}💎</small></div>
+               <button onclick="buy(${r.val})" style="background:var(--accent); border:none; padding:5px 12px; border-radius:15px; font-weight:bold; cursor:pointer;">פדה</button>
+           </div>`).join('');
+
+       // אתגר משפחתי
+       document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `
+           <div style="background:white; padding:12px; border-radius:15px; border-right:6px solid var(--coop); margin-bottom:10px; box-shadow:0 3px 6px rgba(0,0,0,0.05);">
+               <b>🤝 ${c.name}</b> (${totalFamPts}/${c.goal})
+               <div class="bar-bg"><div class="bar-fill" style="background:var(--coop); width:${Math.min((totalFamPts/c.goal)*100,100)}%"></div></div>
+           </div>`).join('');
 
        const next = state.rewards.filter(r=>r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
-       if(next) document.getElementById('mainBar').style.width = Math.min((child.pts/next.val)*100,100)+"%";
+       if(next){
+           document.getElementById('mainBar').style.width = Math.min((child.pts/next.val)*100,100)+"%";
+           document.getElementById('nextGoalText').innerText = `המטרה: ${next.name} (${next.val} נק')`;
+       }
+   }
+
+   function renderAdminPanels() {
+       // ניהול משימות
+       document.getElementById('manageTasks').innerHTML = state.tasks.map((t,i) => `
+           <div class="manage-row">
+               <input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
+               <input type="number" style="width:45px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
+               <button onclick="state.tasks[${i}].needPhoto=!state.tasks[${i}].needPhoto;save();render();" style="background:none;border:none;cursor:pointer;">${t.needPhoto?'📸':'📷'}</button>
+               <button onclick="state.tasks.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
+           </div>`).join('');
+
+       // ניהול פרסים
+       document.getElementById('manageRewards').innerHTML = state.rewards.map((r,i) => `
+           <div class="manage-row">
+               <input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
+               <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
+               <button onclick="state.rewards.splice(${i},1);save();render()" style="background:none;border:none;">🗑️</button>
+           </div>`).join('');
+
+       // ניהול ילדים - כולל עריכת ניקוד
+       const base = window.location.href.split('?')[0];
+       document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
+           <div class="manage-row" style="background:#f0f0f0; margin-bottom:5px; border-radius:5px; padding:10px;">
+               <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:5px;">
+                   <b>${c.name}</b> 
+                   <span>ניקוד: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></span>
+               </div>
+               <small style="font-size:0.7rem; color:blue;">${base}?child=${c.id}</small>
+           </div>`).join('');
+       
+       const pKeys = Object.keys(state.proofs || {});
+       document.getElementById('proofViewer').innerHTML = pKeys.length ? pKeys.map(k => `<div><img src="${state.proofs[k]}" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" onclick="window.open(this.src)"><br><button onclick="delete state.proofs['${k}'];save();render()" style="font-size:0.6rem;">מחק</button></div>`).join('') : "אין צילומים";
    }
 
    function toggleTask(id, v, event) {
-       const child = state.children[state.activeChild];
-       if(!state.dailyDone[child.id]) state.dailyDone[child.id] = [];
-       const idx = state.dailyDone[child.id].indexOf(id);
-       
-       if(idx === -1) {
-           // הוספת V + נצנצים!
-           state.dailyDone[child.id].push(id);
-           child.pts += v;
-           triggerConfetti(event);
-       } else {
-           state.dailyDone[child.id].splice(idx,1);
-           child.pts -= v;
+       const c = state.children[state.activeChild];
+       if(!state.dailyDone[c.id]) state.dailyDone[c.id] = [];
+       const idx = state.dailyDone[c.id].indexOf(id);
+       if(idx===-1){ 
+           state.dailyDone[c.id].push(id); c.pts+=v; 
+           const rect = event.target.getBoundingClientRect();
+           confetti({ particleCount: 100, spread: 70, origin: { x: (rect.left+rect.width/2)/window.innerWidth, y: (rect.top+rect.height/2)/window.innerHeight } });
+       } else { 
+           state.dailyDone[c.id].splice(idx,1); 
+           c.pts = Math.max(0, c.pts - v); // הגנה ממינוס
        }
        save(); render();
    }
 
-   function triggerConfetti(event) {
-       const rect = event.target.getBoundingClientRect();
-       const x = (rect.left + rect.width / 2) / window.innerWidth;
-       const y = (rect.top + rect.height / 2) / window.innerHeight;
-       confetti({
-           particleCount: 80,
-           spread: 70,
-           origin: { x, y },
-           colors: ['#6c5ce7', '#2ecc71', '#e84393', '#f1c40f']
-       });
-   }
-
-   function spinWheel() {
-       const child = state.children[state.activeChild];
-       const doneCount = (state.dailyDone[child.id] || []).length;
-       if(doneCount < 7) return; // הגנה
-       
-       const bonus = Math.floor(Math.random()*21)+10; // בונוס 10-30
-       child.pts += bonus;
-       if(!state.wheelClaims) state.wheelClaims = {};
-       state.wheelClaims[child.id] = new Date().toDateString();
-       
-       confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
-       alert(`מזל טוב! קיבלת בונוס של ${bonus} נקודות! 🌟`);
-       save(); render();
-   }
-
-   // פונקציות ניהול (זהות לגרסה קודמת)
-   function renderAdminPanels() {
-       document.getElementById('manageTasks').innerHTML = state.tasks.map((t,i) => `
-           <div class="manage-row">
-               <input value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()" style="flex:1">
-               <button class="${t.needPhoto?'':'opacity:0.3'}" onclick="state.tasks[${i}].needPhoto=!state.tasks[${i}].needPhoto;save();render();">📸</button>
-               <button onclick="state.tasks.splice(${i},1);save();render()">🗑️</button>
-           </div>`).join('');
-       const pKeys = Object.keys(state.proofs || {});
-       document.getElementById('proofViewer').innerHTML = pKeys.length ? pKeys.map(k => `<div><img src="${state.proofs[k]}" style="width:60px;height:60px;object-fit:cover;border-radius:10px;" onclick="window.open(this.src)"><br><button onclick="delete state.proofs['${k}'];save();render()" style="font-size:0.6rem;">מחיקה</button></div>`).join('') : "אין צילומים";
+   function buy(v) {
+       const c = state.children[state.activeChild];
+       if(c.pts>=v){ 
+           if(confirm("לפדות פרס?")){
+               c.pts = Math.max(0, c.pts - v); // הגנה ממינוס
+               save(); render(); confetti({particleCount:100});
+           }
+       } else alert("חסר נקודות");
    }
 
    function addItem() {
@@ -279,22 +304,32 @@
        const n = document.getElementById('addName').value;
        const v = parseInt(document.getElementById('addVal').value) || 0;
        if(!n) return;
-       if(t=='task') state.tasks.push({id:Date.now(), name:n, val:v, needPhoto:false});
-       else if(t=='reward') state.rewards.push({id:Date.now(), name:n, val:v});
-       else if(t=='quest') state.quests.push({id:Date.now(), name:n, steps:v, current:0});
+       const item = {id:Date.now(), name:n};
+       if(t=='task') { item.val=v; item.needPhoto=false; state.tasks.push(item); }
+       else if(t=='reward') { item.val=v; state.rewards.push(item); }
+       else if(t=='quest') { item.steps=v; item.current=0; state.quests.push(item); }
+       else if(t=='coop') { item.goal=v; state.coops.push(item); }
        save(); render(); document.getElementById('addName').value='';
    }
-   
-   function buy(v) {
-       const c = state.children[state.activeChild];
-       if(c.pts>=v){ if(confirm("לפדות?")){c.pts-=v;save();render();confetti({particleCount:150});}} else alert("חסר נקודות");
+
+   function spinWheel() {
+       const child = state.children[state.activeChild];
+       const doneCount = (state.dailyDone[child.id] || []).length;
+       if(doneCount < 7) return;
+       const bonus = Math.floor(Math.random()*15)+10;
+       child.pts += bonus;
+       if(!state.wheelClaims) state.wheelClaims = {};
+       state.wheelClaims[child.id] = new Date().toDateString();
+       confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+       alert(`כל הכבוד! קיבלת ${bonus} נקודות בונוס! 🎁`);
+       save(); render();
    }
 
    function advQuest(id) {
        const q = state.quests.find(x=>x.id==id);
        if(q && (q.current||0) < q.steps) {
            q.current = (q.current||0) + 1;
-           if(q.current >= q.steps) { state.children[state.activeChild].pts += 100; q.current = 0; confetti({particleCount:200}); alert("פרויקט הושלם!"); }
+           if(q.current >= q.steps) { state.children[state.activeChild].pts += 100; q.current = 0; confetti({particleCount:150}); alert("פרויקט הושלם!"); }
            save(); render();
        }
    }
