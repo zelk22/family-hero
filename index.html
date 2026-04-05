@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V14.2</title>
+   <title>Family Hero 🌟 V15.1</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -21,9 +21,15 @@
            background: #353b48; color: white; border-color: #4b4b4b; 
        }
        
+       #adminToggleBtn {
+           width: 100%; padding: 15px; background: #636e72; color: white; 
+           border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 20px;
+       }
+
        #adminWrapper { 
+           display: none; 
            background: #ffffff !important; color: #2d3436 !important; padding: 20px; border-radius: 20px; 
-           margin-top: 30px; border: 3px solid var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+           margin-top: 10px; border: 3px solid var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
        }
        #adminWrapper * { color: #2d3436 !important; }
        #adminWrapper .accordion { background: #f1f2f6 !important; border: 1px solid #ddd !important; margin-bottom: 5px; cursor: pointer; padding: 15px; border-radius: 12px; width:100%; display:flex; justify-content:space-between; font-weight:bold; border:none; }
@@ -79,7 +85,6 @@
            <div id="mainBar" style="height:100%; transition:1s; background:var(--accent); width: 0%;"></div>
        </div>
        <small id="nextGoalText" style="font-weight: bold; display: block; margin-bottom: 10px;"></small>
-
        <button id="wheelBtn" class="wheel-btn" onclick="spinWheel()">🎡 בונוס גלגל המזל!</button>
    </div>
 
@@ -96,9 +101,10 @@
        </div>
    </div>
 
-   <div id="adminWrapper" style="display:none;">
+   <button id="adminToggleBtn" style="display:none;" onclick="toggleAdminPanel()">⚙️ הגדרות ניהול הורים</button>
+
+   <div id="adminWrapper">
        <h2 style="text-align:center;">🛠️ ניהול הורים</h2>
-       
        <button onclick="copyChildLinks()" style="width:100%; margin-bottom:15px; padding:12px; background:var(--coop); color:white; border:none; border-radius:10px; font-weight:bold;">🔗 העתק לינקים לילדים</button>
 
        <button class="accordion" onclick="toggleAcc(this)">➕ הוספה מהירה <span>▼</span></button>
@@ -133,6 +139,38 @@
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
+   function playSound(type) {
+       const ctx = new (window.AudioContext || window.webkitAudioContext)();
+       const osc = ctx.createOscillator();
+       const gain = ctx.createGain();
+       osc.connect(gain);
+       gain.connect(ctx.destination);
+       const now = ctx.currentTime;
+
+       if (type === 'success') {
+           osc.type = 'sine';
+           osc.frequency.setValueAtTime(440, now);
+           osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+           gain.gain.setValueAtTime(0.1, now);
+           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+           osc.start(now); osc.stop(now + 0.2);
+       } else if (type === 'buy') {
+           osc.type = 'triangle';
+           osc.frequency.setValueAtTime(600, now);
+           osc.frequency.exponentialRampToValueAtTime(300, now + 0.3);
+           gain.gain.setValueAtTime(0.1, now);
+           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+           osc.start(now); osc.stop(now + 0.4);
+       } else if (type === 'wheel') {
+           osc.type = 'sawtooth';
+           osc.frequency.setValueAtTime(200, now);
+           osc.frequency.linearRampToValueAtTime(1000, now + 1.5);
+           gain.gain.setValueAtTime(0.05, now);
+           gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+           osc.start(now); osc.stop(now + 1.5);
+       }
+   }
+
    const firebaseConfig = {
        apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
        authDomain: "family-hero-3a3fd.firebaseapp.com",
@@ -159,7 +197,6 @@
    docRef.onSnapshot(doc => {
        if(doc.exists) {
            state = doc.data();
-           // בחירת הילד לפי ה-URL בטעינה ראשונית
            if (isInitialLoad && targetChildId) {
                const idx = state.children.findIndex(c => c.id == targetChildId);
                if (idx !== -1) state.activeChild = idx;
@@ -193,13 +230,11 @@
            document.getElementById('mainBar').style.width = "100%";
        }
 
-       const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
-       document.getElementById('wheelBtn').style.display = (done.length >= 7 && !hasUsedWheel) ? 'inline-block' : 'none';
+       document.getElementById('wheelBtn').style.display = (done.length >= 7 && (!state.wheelDone || !state.wheelDone[child.id])) ? 'inline-block' : 'none';
 
-       // הצגת ניווט רק לאדמין
        const navEl = document.getElementById('childrenNav');
        if(isAdmin){
-           document.getElementById('adminWrapper').style.display = 'block';
+           document.getElementById('adminToggleBtn').style.display = 'block';
            navEl.style.display = 'flex';
            navEl.innerHTML = state.children.map((c,i)=>`
                <div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
@@ -233,60 +268,9 @@
            </div>`).join('');
    }
 
-   function copyChildLinks() {
-       const baseUrl = window.location.href.split('?')[0];
-       let report = "לינקים אישיים לילדים:\n\n";
-       state.children.forEach(c => {
-           report += `${c.name}: ${baseUrl}?childId=${c.id}\n`;
-       });
-       report += `\nניהול הורים: ${baseUrl}?admin=true`;
-       
-       navigator.clipboard.writeText(report).then(() => {
-           alert("כל הלינקים הועתקו ללוח! תוכל להדביק אותם בוואטסאפ.");
-       });
-   }
-
-   function spinWheel() {
-       const child = state.children[state.activeChild];
-       if(state.wheelDone && state.wheelDone[child.id]) return;
-       const bonus = [10, 20, 30, 40, 50][Math.floor(Math.random()*5)];
-       alert("הגלגל מסתובב... מזל טוב! זכית ב-" + bonus + " נקודות בונוס!");
-       child.pts += bonus;
-       if(!state.wheelDone) state.wheelDone = {};
-       state.wheelDone[child.id] = true;
-       confetti({ particleCount: 200, spread: 90 });
-       save(); render();
-   }
-
-   function renderAdmin() {
-       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `
-           <div class="manage-row"><input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
-           <button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button>
-           <input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
-           <button onclick="state.tasks.splice(${i},1);save();render()">🗑️</button></div>`).join('');
-
-       document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `
-           <div class="manage-row"><input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
-           <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
-           <button onclick="state.rewards.splice(${i},1);save();render()">🗑️</button></div>`).join('');
-
-       document.getElementById('manageQuests').innerHTML = (state.quests||[]).map((q,i) => `
-           <div class="manage-row"><input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save()">
-           <input type="number" style="width:40px" value="${q.steps}" onchange="state.quests[${i}].steps=parseInt(this.value);save()">
-           <button onclick="state.quests.splice(${i},1);save();render()">🗑️</button></div>`).join('');
-
-       document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `
-           <div class="manage-row"><input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save()">
-           <input type="number" style="width:50px" value="${c.goal}" onchange="state.coops[${i}].goal=parseInt(this.value);save()">
-           <button onclick="state.coops.splice(${i},1);save();render()">🗑️</button></div>`).join('');
-
-       const proofs = state.proofs || {};
-       document.getElementById('proofViewer').innerHTML = Object.entries(proofs).map(([id, p]) => `
-           <div class="proof-card"><img src="${p.img}" class="proof-img" onclick="window.open(this.src)"><br><small>${p.by}</small><br>
-           <button onclick="delete state.proofs['${id}'];save();render();" style="font-size:0.6rem;">מחק</button></div>`).join('') || "אין צילומים";
-
-       document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
-           <div class="manage-row"><b>${c.name}</b>: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></div>`).join('');
+   function toggleAdminPanel() {
+       const wrapper = document.getElementById('adminWrapper');
+       wrapper.style.display = wrapper.style.display === 'block' ? 'none' : 'block';
    }
 
    function handleTaskClick(id, val, needsProof) {
@@ -300,6 +284,14 @@
        else { completeTask(id, val); }
    }
 
+   function completeTask(id, val) {
+       playSound('success');
+       const child = state.children[state.activeChild];
+       if(!state.dailyDone[child.id]) state.dailyDone[child.id]=[];
+       state.dailyDone[child.id].push(id); child.pts+=val;
+       confetti({ particleCount:100, spread:70, origin:{y:0.6} }); save(); render();
+   }
+
    function handleImageUpload(event) {
        const file = event.target.files[0]; if(!file) return;
        const reader = new FileReader();
@@ -311,11 +303,71 @@
        reader.readAsDataURL(file);
    }
 
-   function completeTask(id, val) {
+   function spinWheel() {
        const child = state.children[state.activeChild];
-       if(!state.dailyDone[child.id]) state.dailyDone[child.id]=[];
-       state.dailyDone[child.id].push(id); child.pts+=val;
-       confetti({ particleCount:100, spread:70, origin:{y:0.6} }); save(); render();
+       if(state.wheelDone && state.wheelDone[child.id]) return;
+       playSound('wheel');
+       const bonus = [10, 20, 30, 40, 50][Math.floor(Math.random()*5)];
+       setTimeout(() => {
+           alert("זכית ב-" + bonus + " נקודות בונוס!");
+           child.pts += bonus;
+           if(!state.wheelDone) state.wheelDone = {};
+           state.wheelDone[child.id] = true;
+           confetti({ particleCount: 200, spread: 90 });
+           save(); render();
+       }, 1500);
+   }
+
+   function buy(v) { 
+       const c = state.children[state.activeChild]; 
+       if(c.pts>=v && confirm("פדה?")){ 
+           playSound('buy');
+           c.pts-=v; save(); render(); confetti(); 
+       }
+   }
+
+   function advQuest(id) { 
+       const q = state.quests.find(x=>x.id==id); 
+       if(q && q.current < q.steps){ 
+           playSound('success');
+           q.current++; 
+           if(q.current>=q.steps){ state.children[state.activeChild].pts+=100; q.current=0; } 
+           save(); render(); 
+       }
+   }
+
+   function renderAdmin() {
+       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `
+           <div class="manage-row"><input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
+           <button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button>
+           <input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
+           <button onclick="state.tasks.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+       document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `
+           <div class="manage-row"><input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
+           <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
+           <button onclick="state.rewards.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+       document.getElementById('manageQuests').innerHTML = (state.quests||[]).map((q,i) => `
+           <div class="manage-row"><input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save()">
+           <input type="number" style="width:40px" value="${q.steps}" onchange="state.quests[${i}].steps=parseInt(this.value);save()">
+           <button onclick="state.quests.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+       document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `
+           <div class="manage-row"><input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save()">
+           <input type="number" style="width:50px" value="${c.goal}" onchange="state.coops[${i}].goal=parseInt(this.value);save()">
+           <button onclick="state.coops.splice(${i},1);save();render()">🗑️</button></div>`).join('');
+       const proofs = state.proofs || {};
+       document.getElementById('proofViewer').innerHTML = Object.entries(proofs).map(([id, p]) => `
+           <div class="proof-card"><img src="${p.img}" class="proof-img" onclick="window.open(this.src)"><br><small>${p.by}</small><br>
+           <button onclick="delete state.proofs['${id}'];save();render();" style="font-size:0.6rem;">מחק</button></div>`).join('') || "אין צילומים";
+       document.getElementById('manageChildren').innerHTML = state.children.map((c,i) => `
+           <div class="manage-row"><b>${c.name}</b>: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></div>`).join('');
+   }
+
+   function copyChildLinks() {
+       const baseUrl = window.location.href.split('?')[0];
+       let report = "לינקים אישיים לילדים:\n\n";
+       state.children.forEach(c => { report += `${c.name}: ${baseUrl}?childId=${c.id}\n`; });
+       report += `\nניהול הורים: ${baseUrl}?admin=true`;
+       navigator.clipboard.writeText(report).then(() => { alert("הלינקים הועתקו!"); });
    }
 
    function addItem() {
@@ -331,8 +383,6 @@
    }
 
    function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display==='block'?'none':'block'; }
-   function buy(v) { const c = state.children[state.activeChild]; if(c.pts>=v && confirm("פדה?")){ c.pts-=v; save(); render(); confetti(); }}
-   function advQuest(id) { const q = state.quests.find(x=>x.id==id); if(q && q.current < q.steps){ q.current++; if(q.current>=q.steps){ state.children[state.activeChild].pts+=100; q.current=0; } save(); render(); }}
 </script>
 </body>
 </html>
