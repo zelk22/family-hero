@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V8.9.0</title>
+   <title>Family Hero 🌟 V9.1.0</title>
     
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -39,8 +39,8 @@
        .btn-del { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
        .input-edit { padding: 5px; border-radius: 5px; border: 1px solid #ddd; }
        
-       /* הסתרת ממשק הניהול כברירת מחדל */
-       #adminWrapper { display: none; }
+       /* הסתרת אלמנטים כברירת מחדל */
+       #adminWrapper, #childrenNav { display: none; }
    </style>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <div class="container">
    <header style="text-align: center; padding: 10px;">
        <h1 style="color: var(--primary); margin: 0;">Family Hero 🌟</h1>
-       <div id="dateDisplay" style="color: #888; font-size: 0.9rem;">טוען נתונים...</div>
+       <div id="dateDisplay" style="color: #888; font-size: 0.9rem;">טוען...</div>
    </header>
  
    <div id="childrenNav" class="children-nav"></div>
@@ -66,7 +66,6 @@
            <h2 style="color: var(--primary); margin-top: 0;">📅 משימות יומיות</h2>
            <div id="tasksList"></div>
            <button id="btnMoreTasks" class="btn-show-more" onclick="toggleExpand('tasks')">הצג עוד ▼</button>
-           
            <h3 style="color: var(--special); margin-top: 30px; border-top: 2px solid #f0f0f0; padding-top: 15px;">🔥 פרויקטים</h3>
            <div id="questsList"></div>
        </div>
@@ -77,11 +76,10 @@
        </div>
    </div>
  
-   <!-- עטיפה לממשק הניהול -->
    <div id="adminWrapper" class="admin-box" style="margin-top: 30px;">
        <button class="accordion" onclick="toggleAcc(this)">⚙️ ניהול מערכת (הורים בלבד) <span>▼</span></button>
        <div class="panel">
-           <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן / אתגר <span>▼</span></div>
+           <div class="sub-accordion" onclick="toggleSub(this)">➕ הוספת תוכן <span>▼</span></div>
            <div class="sub-panel">
                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
                     <div style="flex:1"><label>סוג</label><select id="addType" onchange="updateFormFields()"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">🤝 אתגר משפחתי</option></select></div>
@@ -93,16 +91,12 @@
                     <button class="btn-action" style="background:var(--success); color:white; height:40px;" onclick="addNewContent()">שמור</button>
                </div>
            </div>
-           <button class="sub-accordion" onclick="toggleSub(this)">👶 שמות ילדים <span>▼</span></button>
+           <button class="sub-accordion" onclick="toggleSub(this)">👶 שמות ולינקים לילדים <span>▼</span></button>
            <div class="sub-panel" id="manageChildren"></div>
            <button class="sub-accordion" onclick="toggleSub(this)">📝 עריכת משימות <span>▼</span></button>
            <div class="sub-panel" id="manageTasks"></div>
            <button class="sub-accordion" onclick="toggleSub(this)">🎁 עריכת פרסים <span>▼</span></button>
            <div class="sub-panel" id="manageRewards"></div>
-           <button class="sub-accordion" onclick="toggleSub(this)">🔥 עריכת פרויקטים <span>▼</span></button>
-           <div class="sub-panel" id="manageQuests"></div>
-           <button class="sub-accordion" onclick="toggleSub(this)">🤝 עריכת אתגרים <span>▼</span></button>
-           <div class="sub-panel" id="manageCoops"></div>
            <button class="sub-accordion" onclick="toggleSub(this)">⏰ איפוס יומי <span>▼</span></button>
            <div class="sub-panel"><button class="btn-show-more" style="color:red; border-color:red" onclick="manualReset()">איפוס סימוני V</button></div>
        </div>
@@ -123,91 +117,29 @@
    const db = firebase.firestore();
    const docRef = db.collection("data").doc("v875_main_state");
  
-   // בדיקה האם המשתמש הוא מנהל לפי ה-URL
    const urlParams = new URLSearchParams(window.location.search);
    const isAdmin = urlParams.get('admin') === 'true';
-   if (isAdmin) {
-       document.getElementById('adminWrapper').style.display = 'block';
-   }
+   const childIdParam = urlParams.get('child');
 
-   let config = { tasksLimit: 5, rewardsLimit: 5, expandedTasks: false, expandedRewards: false };
-   let state = {
-       activeChild: 0,
-       children: [{id:1, name:"ילד 1", pts:0}, {id:2, name:"ילד 2", pts:0}],
-       tasks: [{id:1, name:"צחצוח שיניים", val:2}],
-       rewards: [{id:101, name:"ממתק", val:30}],
-       quests: [], coops: [], dailyDone: {}
-   };
- 
+   let state = { activeChild: 0, children: [], tasks: [], rewards: [], quests: [], coops: [], dailyDone: {} };
    let isInitialLoad = true;
 
-   function save() { 
-       if(!isInitialLoad) {
-           docRef.set(state).catch(err => console.error("Save error:", err));
-       }
-   }
+   function save() { if(!isInitialLoad) docRef.set(state).catch(err => console.error(err)); }
  
    docRef.onSnapshot((doc) => {
        if (doc && doc.exists) { 
            state = doc.data();
+           if (childIdParam) {
+               const idx = state.children.findIndex(c => c.id == childIdParam);
+               if (idx !== -1) state.activeChild = idx;
+           }
        }
        isInitialLoad = false; 
        render(); 
    });
  
-   function toggleExpand(type) { 
-       if(type==='tasks') config.expandedTasks = !config.expandedTasks; 
-       if(type==='rewards') config.expandedRewards = !config.expandedRewards; 
-       render(); 
-    }
- 
-   function toggleTask(tId, val) {
-       const child = state.children[state.activeChild];
-       if(!state.dailyDone[child.id]) state.dailyDone[child.id] = [];
-       const idx = state.dailyDone[child.id].indexOf(tId);
-       if(idx === -1) { 
-           state.dailyDone[child.id].push(tId);
-           child.pts += val; 
-       } else { 
-           state.dailyDone[child.id].splice(idx, 1);
-           child.pts -= val; 
-       }
-       render(); save();
-    }
- 
-   function advanceQuest(qId) {
-       const q = state.quests.find(x => x.id === qId);
-       if (q && q.current < q.steps) {
-           q.current++;
-           if (q.current >= q.steps) { 
-               state.children[state.activeChild].pts += q.val; 
-               q.current = 0; 
-           }
-           render(); save();
-       }
-    }
- 
-   function addNewContent() {
-       const type = document.getElementById('addType').value;
-       const name = document.getElementById('addName').value;
-       if(!name) return;
-       const val = (type === 'task') ? parseInt(document.getElementById('addDiff').value) : parseInt(document.getElementById('addNum').value);
-       if(type === 'task') state.tasks.push({id:Date.now(), name, val});
-       else if(type === 'reward') state.rewards.push({id:Date.now(), name, val});
-       else if(type === 'quest') state.quests.push({id:Date.now(), name, steps:val, current:0, val:100});
-       else if(type === 'coop') state.coops.push({id:Date.now(), name, goal:val});
-       render(); save();
-       document.getElementById('addName').value = '';
-    }
- 
-   function updateFormFields() {
-       const type = document.getElementById('addType').value;
-       document.getElementById('addDiff').style.display = (type === 'task') ? 'block' : 'none';
-       document.getElementById('addNum').style.display = (type !== 'task') ? 'block' : 'none';
-    }
- 
    function render() {
-       if(!state.children) return;
+       if(!state.children || !state.children[state.activeChild]) return;
        const child = state.children[state.activeChild];
        const doneList = state.dailyDone[child.id] || [];
        const totalFamilyPoints = state.children.reduce((s, c) => s + (c.pts || 0), 0);
@@ -215,39 +147,74 @@
        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL', { weekday:'long', day:'numeric', month:'long' });
        document.getElementById('activePoints').innerText = child.pts;
        document.getElementById('activeNameDisplay').innerText = child.name;
-       document.getElementById('childrenNav').innerHTML = state.children.map((c, idx) => `<div class="child-tab ${idx===state.activeChild?'active':''}" onclick="state.activeChild=${idx}; render();">${c.name}</div>`).join('');
- 
-       const coopArea = document.getElementById('coopArea');
-       coopArea.innerHTML = (state.coops||[]).map(c => `<div class="coop-section"><b>🤝 ${c.name}</b> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('');
- 
-       const tasksToShow = config.expandedTasks ? state.tasks : state.tasks.slice(0, config.tasksLimit);
-       document.getElementById('tasksList').innerHTML = tasksToShow.map(t => `<div class="list-item ${doneList.includes(t.id)?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val}</small></div><button class="btn-v ${doneList.includes(t.id)?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`).join('');
-       document.getElementById('btnMoreTasks').innerText = config.expandedTasks ? "הצג פחות ▲" : "הצג עוד ▼";
- 
-       const rewardsToShow = config.expandedRewards ? state.rewards : state.rewards.slice(0, config.rewardsLimit);
-       document.getElementById('rewardsList').innerHTML = rewardsToShow.map(r => `<div class="list-item"><div><b>${r.name}</b><br><small>${r.val}💎</small></div><button class="btn-action" onclick="if(state.children[state.activeChild].pts>=${r.val}){state.children[state.activeChild].pts-=${r.val}; render(); save();}else{alert('חסר נקודות');}">פדה</button></div>`).join('');
-       document.getElementById('btnMoreRewards').innerText = config.expandedRewards ? "הצג פחות ▲" : "הצג עוד ▼";
- 
-       document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="font-size:0.75rem; width:100%;" onclick="advanceQuest(${q.id})">+ התקדמות</button></div>`).join('');
- 
-       // ניהול הורים
+       
+       // לוגיקת תצוגה: הורה מול ילד
        if (isAdmin) {
-           document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `<div class="manage-row"><input class="input-edit" style="width:100%" value="${c.name}" onchange="state.children[${i}].name=this.value; save();"></div>`).join('');
-           document.getElementById('manageTasks').innerHTML = state.tasks.map(t => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${t.name}" onchange="state.tasks.find(x=>x.id==${t.id}).name=this.value; save();"><button class="btn-del" onclick="state.tasks=state.tasks.filter(x=>x.id!==${t.id}); render(); save();">🗑️</button></div>`).join('');
-           document.getElementById('manageRewards').innerHTML = state.rewards.map(r => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${r.name}" onchange="state.rewards.find(x=>x.id==${r.id}).name=this.value; save();"><button class="btn-del" onclick="state.rewards=state.rewards.filter(x=>x.id!==${r.id}); render(); save();">🗑️</button></div>`).join('');
-           document.getElementById('manageQuests').innerHTML = (state.quests||[]).map(q => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${q.name}" onchange="state.quests.find(x=>x.id==${q.id}).name=this.value; save();"><button class="btn-del" onclick="state.quests=state.quests.filter(x=>x.id!==${q.id}); render(); save();">🗑️</button></div>`).join('');
-           document.getElementById('manageCoops').innerHTML = (state.coops||[]).map(c => `<div class="manage-row"><input class="input-edit" style="flex:2" value="${c.name}" onchange="state.coops.find(x=>x.id==${c.id}).name=this.value; save();"><button class="btn-del" onclick="state.coops=state.coops.filter(x=>x.id!==${c.id}); render(); save();">🗑️</button></div>`).join('');
+           document.getElementById('adminWrapper').style.display = 'block';
+           document.getElementById('childrenNav').style.display = 'flex';
+           document.getElementById('childrenNav').innerHTML = state.children.map((c, idx) => `<div class="child-tab ${idx===state.activeChild?'active':''}" onclick="state.activeChild=${idx}; render();">${c.name}</div>`).join('');
+       } else {
+           document.getElementById('adminWrapper').style.display = 'none';
+           document.getElementById('childrenNav').style.display = 'none';
        }
  
+       // שאר הרינדור (משימות, פרסים וכו')
+       document.getElementById('tasksList').innerHTML = (config.expandedTasks ? state.tasks : state.tasks.slice(0, 5)).map(t => `<div class="list-item ${doneList.includes(t.id)?'completed':''}"><div><b>${t.name}</b><br><small>+${t.val}</small></div><button class="btn-v ${doneList.includes(t.id)?'done':''}" onclick="toggleTask(${t.id}, ${t.val})">✓</button></div>`).join('');
+       document.getElementById('rewardsList').innerHTML = (config.expandedRewards ? state.rewards : state.rewards.slice(0, 5)).map(r => `<div class="list-item"><div><b>${r.name}</b><br><small>${r.val}💎</small></div><button class="btn-action" onclick="if(state.children[state.activeChild].pts>=${r.val}){state.children[state.activeChild].pts-=${r.val}; render(); save();}else{alert('חסר נקודות');}">פדה</button></div>`).join('');
+       document.getElementById('questsList').innerHTML = (state.quests||[]).map(q => `<div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.name}</b> <span>${q.current}/${q.steps}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${(q.current/q.steps)*100}%; background:var(--special)"></div></div><button class="btn-action" style="font-size:0.75rem; width:100%;" onclick="advanceQuest(${q.id})">+ התקדמות</button></div>`).join('');
+       document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `<div class="coop-section"><b>🤝 ${c.name}</b> (${totalFamilyPoints}/${c.goal})<div class="bar-bg"><div class="bar-fill" style="width:${Math.min((totalFamilyPoints/c.goal)*100, 100)}%; background:var(--coop)"></div></div></div>`).join('');
+
+       if (isAdmin) {
+           const base = window.location.href.split('?')[0];
+           document.getElementById('manageChildren').innerHTML = state.children.map((c, i) => `<div class="manage-row" style="background:#f4f4f4; margin-bottom:5px; padding:10px; border-radius:10px;">
+               <input class="input-edit" style="width:100px" value="${c.name}" onchange="state.children[${i}].name=this.value; save();">
+               <div style="font-size:0.7rem; color:#666; word-break:break-all;">לינק: ${base}?child=${c.id}</div>
+           </div>`).join('');
+       }
+
        const nextR = state.rewards.filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0] || state.rewards[0];
        if(nextR) {
            document.getElementById('mainBar').style.width = Math.min((child.pts / nextR.val) * 100, 100) + "%";
            document.getElementById('nextGoalText').innerText = `המטרה: ${nextR.name} (${nextR.val} נק')`;
        }
     }
+
+   let config = { expandedTasks: false, expandedRewards: false };
+   function toggleExpand(t) { if(t==='tasks') config.expandedTasks=!config.expandedTasks; else config.expandedRewards=!config.expandedRewards; render(); }
+   function toggleTask(id, v) {
+       const c = state.children[state.activeChild];
+       if(!state.dailyDone[c.id]) state.dailyDone[c.id] = [];
+       const idx = state.dailyDone[c.id].indexOf(id);
+       if(idx===-1){ state.dailyDone[c.id].push(id); c.pts+=v; } else { state.dailyDone[c.id].splice(idx,1); c.pts-=v; }
+       render(); save();
+   }
+   function advanceQuest(id) {
+       const q = state.quests.find(x => x.id === id);
+       if (q && q.current < q.steps) {
+           q.current++;
+           if (q.current >= q.steps) { state.children[state.activeChild].pts += 100; q.current = 0; }
+           render(); save();
+       }
+   }
+   function addNewContent() {
+       const t = document.getElementById('addType').value;
+       const n = document.getElementById('addName').value;
+       if(!n) return;
+       const v = (t==='task')?parseInt(document.getElementById('addDiff').value):parseInt(document.getElementById('addNum').value);
+       if(t==='task') state.tasks.push({id:Date.now(), name:n, val:v});
+       else if(t==='reward') state.rewards.push({id:Date.now(), name:n, val:v});
+       else if(t==='quest') state.quests.push({id:Date.now(), name:n, steps:v, current:0});
+       else if(t==='coop') state.coops.push({id:Date.now(), name:n, goal:v});
+       render(); save();
+       document.getElementById('addName').value='';
+   }
+   function updateFormFields() {
+       document.getElementById('addDiff').style.display = (document.getElementById('addType').value==='task')?'block':'none';
+       document.getElementById('addNum').style.display = (document.getElementById('addType').value!=='task')?'block':'none';
+   }
    function toggleAcc(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
    function toggleSub(el) { const p = el.nextElementSibling; p.style.display = p.style.display === "block" ? "none" : "block"; }
-   function manualReset() { if(confirm('לאפס סימוני V?')) { state.dailyDone = {}; render(); save(); } }
+   function manualReset() { if(confirm('לאפס?')) { state.dailyDone = {}; render(); save(); } }
 </script>
 </body>
 </html>
