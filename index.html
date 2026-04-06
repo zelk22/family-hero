@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V24 - Personal Edition</title>
+   <title>Family Hero 🌟 V28 - Smart & Ready</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -29,21 +29,23 @@
        
        #adminWrapper { 
            background: #ffffff !important; color: #2d3436 !important; 
-           padding: 20px; border-radius: 20px; margin-top: 30px; 
+           padding: 20px; border-radius: 20px; margin: 20px 0; 
            border: 3px solid var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-           display: none;
+           display: none; position: relative; z-index: 1001;
        }
-       #adminWrapper .accordion { background: #f1f2f6; color: #2d3436; border: none; margin-bottom: 5px; cursor: pointer; padding: 15px; border-radius: 12px; width:100%; display:flex; justify-content:space-between; font-weight:bold; }
-       #adminWrapper .panel { background: #ffffff; color: #2d3436; border: 1px solid #eee; padding: 15px; border-radius: 0 0 12px 12px; margin-bottom: 10px; display:none; }
-
-       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.3s; padding-bottom: 80px; }
+       
+       .accordion { background: #f1f2f6; color: #2d3436; border: none; margin-bottom: 5px; cursor: pointer; padding: 15px; border-radius: 12px; width:100%; display:flex; justify-content:space-between; font-weight:bold; }
+       .panel { background: #ffffff; color: #2d3436; border: 1px solid #eee; padding: 15px; border-radius: 0 0 12px 12px; margin-bottom: 10px; display: none;}
+       
+       body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.3s; padding-bottom: 100px; }
        .container { max-width: 1100px; margin: 0 auto; }
        
+       /* כפתור הניהול - תיקון נגישות */
        .admin-toggle-btn {
-           position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px;
+           position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px;
            background: var(--primary); color: white; border-radius: 50%;
-           border: none; font-size: 1.5rem; cursor: pointer; z-index: 1000;
-           box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+           border: 3px solid white; font-size: 1.6rem; cursor: pointer; z-index: 9999;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;
        }
 
        .children-nav { display: flex; gap: 12px; overflow-x: auto; padding: 15px 0; justify-content: center; }
@@ -67,13 +69,12 @@
        .btn-v.done { background: var(--success); color: white; border: none; }
        .btn-v.needs-camera::after { content: '📷'; font-size: 0.7rem; position: absolute; bottom: -5px; background: white; border-radius: 50%; padding: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
+       .emoji-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 5px; margin: 10px 0; background: #f9f9f9; padding: 10px; border-radius: 10px; border: 1px dashed #ccc; }
+       .emoji-btn { font-size: 1.5rem; cursor: pointer; text-align: center; transition: 0.2s; border-radius: 5px; }
+       .emoji-btn:hover { background: #e0e0e0; transform: scale(1.2); }
+
        .manage-row { display: flex; gap: 8px; align-items: center; padding: 10px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
-       .input-edit { padding: 8px; border-radius: 6px; flex: 1; border: 1px solid #ccc; }
-       
-       .emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 5px; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 10px; }
-       .emoji-item { font-size: 1.5rem; cursor: pointer; text-align: center; padding: 5px; border-radius: 5px; transition: 0.2s; }
-       .emoji-item:hover { background: #e2e2e2; }
-       .owner-badge { font-size: 0.7rem; background: #eee; padding: 2px 6px; border-radius: 10px; }
+       .input-edit { background: #ffffff !important; color: #2d3436 !important; border: 1px solid #ccc !important; padding: 5px; border-radius: 4px; flex: 1; }
 
        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
    </style>
@@ -113,6 +114,7 @@
        </div>
    </div>
 
+   <!-- פאנל ניהול הורים -->
    <div id="adminWrapper">
        <h2 style="text-align:center;">🛠️ ניהול הורים</h2>
        
@@ -125,13 +127,18 @@
        <div class="panel">
            <div style="display:flex; gap:5px; flex-wrap:wrap; align-items: center;">
                <input type="text" id="addIcon" placeholder="😊" style="width:40px; text-align:center; padding:10px; border-radius:5px; border:1px solid #ccc;">
-               <input type="text" id="addName" placeholder="שם המשימה/פרס..." style="flex:1; padding: 10px; border-radius:5px; border:1px solid #ccc;">
+               <input type="text" id="addName" placeholder="שם..." style="flex:1; min-width:120px; padding: 10px; border-radius:5px; border:1px solid #ccc;">
                <input type="number" id="addVal" placeholder="ערך" style="width:60px; padding: 10px; border-radius:5px; border:1px solid #ccc;">
-               <select id="addType" onchange="toggleEmojiPicker()" style="padding: 10px; border-radius: 5px;"><option value="task">משימה</option><option value="reward">פרס</option><option value="quest">פרויקט</option><option value="coop">אתגר משפחתי</option></select>
+               <select id="addType" onchange="updateEmojiList()" style="padding: 10px; border-radius: 5px;">
+                   <option value="task">משימה</option>
+                   <option value="reward">פרס</option>
+                   <option value="quest">פרויקט</option>
+                   <option value="coop">אתגר</option>
+               </select>
                <select id="addOwner" style="padding: 10px; border-radius: 5px;"><option value="all">לכולם</option></select>
                <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer;">הוסף</button>
            </div>
-           <div id="emojiPicker" class="emoji-grid"></div>
+           <div id="emojiPicker" class="emoji-picker"></div>
        </div>
 
        <button class="accordion" onclick="toggleAcc(this)">👶 ניקוד ילדים <span>▼</span></button>
@@ -159,8 +166,27 @@
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-   const emojiTasks = ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼'];
-   const emojiPrizes = ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤'];
+   // מאגר אימוג'ים לבחירה
+   const emojiSet = {
+       task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼'],
+       reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤']
+   };
+
+   // נתוני ברירת מחדל (יוזרקו רק אם ה-DB ריק)
+   const defaultTasks = [
+       {id:1, name:"סידור מיטה", val:10, icon:"🛌", owner:"all"}, {id:2, name:"צחצוח שיניים", val:5, icon:"🦷", owner:"all"},
+       {id:3, name:"שיעורי בית", val:20, icon:"📚", owner:"all"}, {id:4, name:"פינוי שולחן", val:15, icon:"🍽️", owner:"all"},
+       {id:5, name:"מקלחת", val:10, icon:"🚿", owner:"all"}, {id:6, name:"סידור חדר", val:25, icon:"🧹", owner:"all"},
+       {id:7, name:"קריאת ספר", val:15, icon:"📖", owner:"all"}, {id:8, name:"זריקת זבל", val:10, icon:"🗑️", owner:"all"},
+       {id:9, name:"כביסה לסל", val:5, icon:"🧺", owner:"all"}, {id:10, name:"התארגנות בוקר", val:15, icon:"👟", owner:"all"}
+   ];
+   const defaultRewards = [
+       {id:101, name:"גלידה", val:100, icon:"🍦", owner:"all"}, {id:102, name:"חצי שעה מסך", val:150, icon:"🎮", owner:"all"},
+       {id:103, name:"ממתק", val:80, icon:"🍭", owner:"all"}, {id:104, name:"סרט", val:500, icon:"🎬", owner:"all"},
+       {id:105, name:"צעצוע", val:300, icon:"🎁", owner:"all"}, {id:106, name:"פיצה", val:400, icon:"🍕", owner:"all"},
+       {id:107, name:"שינה מאוחרת", val:200, icon:"🌙", owner:"all"}, {id:108, name:"חבר", val:150, icon:"🏠", owner:"all"},
+       {id:109, name:"משחק עם אבא", val:100, icon:"🎲", owner:"all"}, {id:110, name:"מתנה גדולה", val:1000, icon:"🏆", owner:"all"}
+   ];
 
    let audioCtx;
    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -179,29 +205,28 @@
    }
 
    const sounds = {
-       task: () => { playTone(600, 'sine', 0.1, 0.1); setTimeout(() => playTone(800, 'sine', 0.1, 0.1), 80); },
-       bonus: () => { [523, 659, 783].forEach((f,i) => playTone(f, 'sine', 0.2, 0.1, 0, i*100)); },
-       reward: () => { playTone(1200, 'sawtooth', 0.1, 0.05); setTimeout(() => playTone(1500, 'sine', 0.3, 0.05), 50); },
-       questFinish: () => { [523, 659, 783, 1046].forEach((f,i) => playTone(f, 'square', 0.4, 0.05, 0, i*150)); },
+       task: () => { playTone(700, 'sine', 0.2, 0.1); setTimeout(() => playTone(900, 'sine', 0.2, 0.1), 120); },
+       bonus: () => { [440, 554, 659].forEach((f,i) => playTone(f, 'sine', 0.3, 0.1, 0, i*100)); },
+       reward: () => { [1000, 1200, 1400, 1600, 1800].forEach((f,i) => playTone(f, 'sine', 0.4, 0.03, 0, i*40)); },
+       questFinish: () => { [523, 659, 783, 1046].forEach((f,i) => playTone(f, 'sine', 0.8, 0.05, 0, i*150)); },
        claps: () => { for (let i = 0; i < 20; i++) playTone(400 + Math.random()*600, 'sine', 0.1, 0.02, 0, Math.random()*1000); }
    };
 
    const firebaseConfig = {
        apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
        authDomain: "family-hero-3a3fd.firebaseapp.com",
-       projectId: "family-hero-3a3fd",
-       docId: "v24_personal_hero"
+       projectId: "family-hero-3a3fd"
    };
    firebase.initializeApp(firebaseConfig);
    const db = firebase.firestore();
-   const docRef = db.collection("data").doc(firebaseConfig.docId);
+   const docRef = db.collection("data").doc("v28_smart_full");
 
    const urlParams = new URLSearchParams(window.location.search);
    const isInitialAdmin = urlParams.get('admin') === 'true';
    const targetChildId = urlParams.get('childId');
    const childColors = ["#6c5ce7", "#e84393", "#00cec9", "#f1c40f", "#ff7675"];
 
-   let state = { activeChild:0, children:[], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{}, darkMode: null };
+   let state = { activeChild:0, children:[{id:1, name:"ילד 1", pts:0}], tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{}, darkMode: null };
    let pendingTaskId = null;
    let isInitialLoad = true;
    let showAdmin = isInitialAdmin;
@@ -211,21 +236,38 @@
    docRef.onSnapshot(doc => {
        if(doc.exists) {
            state = doc.data();
+           // הזרקת ברירת מחדל אם ריק
+           if(!state.tasks || state.tasks.length === 0) state.tasks = defaultTasks;
+           if(!state.rewards || state.rewards.length === 0) state.rewards = defaultRewards;
+           
            if (isInitialLoad && targetChildId) {
                const idx = state.children.findIndex(c => c.id == targetChildId);
                if (idx !== -1) state.activeChild = idx;
            }
+       } else {
+           // אתחול ראשוני לגמרי
+           state.tasks = defaultTasks;
+           state.rewards = defaultRewards;
+           save();
        }
-       if(isInitialLoad) updateOwnerDropdowns();
        isInitialLoad = false;
+       updateOwnerDropdowns();
        applyDarkMode();
        render();
    });
 
    function updateOwnerDropdowns() {
-       const sel = document.getElementById('addOwner');
-       sel.innerHTML = '<option value="all">לכולם</option>' + 
-           state.children.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+       const select = document.getElementById('addOwner');
+       if(!select) return;
+       const options = '<option value="all">לכולם</option>' + 
+           (state.children||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+       select.innerHTML = options;
+   }
+
+   function updateEmojiList() {
+       const type = document.getElementById('addType').value;
+       const list = (type === 'reward') ? emojiSet.reward : emojiSet.task;
+       document.getElementById('emojiPicker').innerHTML = list.map(e => `<span class="emoji-btn" onclick="document.getElementById('addIcon').value='${e}'">${e}</span>`).join('');
    }
 
    function toggleDarkMode() {
@@ -248,16 +290,8 @@
 
    function toggleAdminPanel() { 
        showAdmin = !showAdmin; 
-       if(showAdmin) toggleEmojiPicker();
+       if(showAdmin) updateEmojiList(); 
        render(); 
-   }
-
-   function toggleEmojiPicker() {
-       const type = document.getElementById('addType').value;
-       const list = (type === 'reward') ? emojiPrizes : emojiTasks;
-       document.getElementById('emojiPicker').innerHTML = list.map(e => `
-           <div class="emoji-item" onclick="document.getElementById('addIcon').value='${e}'">${e}</div>
-       `).join('');
    }
 
    function render() {
@@ -278,15 +312,11 @@
        const filterByOwner = (item) => !item.owner || item.owner === 'all' || item.owner == child.id;
 
        const nextReward = (state.rewards||[]).filter(filterByOwner).filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0];
-       document.getElementById('nextGoalText').innerText = nextReward ? `היעד הבא: ${nextReward.name} (עוד ${nextReward.val - child.pts} 💎)` : "כל הכבוד! הגעת ליעדים!";
+       document.getElementById('nextGoalText').innerText = nextReward ? `היעד הבא: ${nextReward.name} (עוד ${nextReward.val - child.pts} נקודות)` : "הגעת להכל!";
        document.getElementById('mainBar').style.width = nextReward ? Math.min((child.pts / nextReward.val) * 100, 100) + "%" : "100%";
 
        const navEl = document.getElementById('childrenNav');
-       navEl.style.display = showAdmin ? 'flex' : 'none';
-       if(showAdmin) {
-           navEl.innerHTML = state.children.map((c,i)=>`<div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
-           renderAdmin();
-       }
+       navEl.innerHTML = (state.children||[]).map((c,i)=>`<div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
 
        document.getElementById('tasksList').innerHTML = (state.tasks||[]).filter(filterByOwner).map(t => `
            <div class="list-item ${done.includes(t.id)?'completed':''}">
@@ -314,6 +344,8 @@
 
        const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
        document.getElementById('wheelBtn').style.display = (done.length >= 7 && !hasUsedWheel) ? 'inline-block' : 'none';
+       
+       if(showAdmin) renderAdmin();
    }
 
    function handleTaskClick(id, val, needsProof) {
@@ -334,17 +366,12 @@
        child.pts+=val;
        sounds.task();
        confetti({ particleCount:100, spread:70, origin:{y:0.6} }); 
-       const totalTasks = state.tasks.filter(t => !t.owner || t.owner === 'all' || t.owner == child.id).length;
-       if(state.dailyDone[child.id].length === totalTasks) {
-           setTimeout(() => { sounds.claps(); alert("וואו! כל המשימות שלך להיום הושלמו! 👏"); }, 600);
-       }
        save(); render();
    }
 
    function buy(v) { 
        const c = state.children[state.activeChild]; 
        if(c.pts>=v && confirm("לפדות את הפרס?")){ c.pts-=v; sounds.reward(); save(); render(); confetti(); }
-       else if(c.pts < v) alert("חסר לך עוד קצת ניקוד...");
    }
 
    function spinWheel() {
@@ -371,46 +398,56 @@
    }
 
    function renderAdmin() {
-       const renderList = (type, list) => list.map((item,i) => {
-           const ownerName = item.owner === 'all' ? 'כולם' : (state.children.find(c=>c.id==item.owner)||{}).name || 'כולם';
-           return `
-           <div class="manage-row">
-               <span>${item.icon||'✨'}</span>
-               <input class="input-edit" value="${item.name}" onchange="state.${type}[${i}].name=this.value;save()">
-               <span class="owner-badge">${ownerName}</span>
-               <button onclick="state.${type}.splice(${i},1);save();render()" style="cursor:pointer; background:none; border:none;">🗑️</button>
-           </div>`;
-       }).join('');
+       const ownerSelect = (current, type, idx) => `
+           <select style="font-size:0.7rem; padding:3px;" onchange="state.${type}[${idx}].owner=this.value;save();render();">
+               <option value="all" ${current==='all'?'selected':''}>כולם</option>
+               ${state.children.map(c=>`<option value="${c.id}" ${current==c.id?'selected':''}>${c.name}</option>`).join('')}
+           </select>`;
 
-       document.getElementById('manageTasks').innerHTML = renderList('tasks', state.tasks);
-       document.getElementById('manageRewards').innerHTML = renderList('rewards', state.rewards);
-       document.getElementById('manageQuests').innerHTML = renderList('quests', state.quests);
-       document.getElementById('manageCoops').innerHTML = renderList('coops', state.coops);
+       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `
+           <div class="manage-row">
+               <span>${t.icon||'✨'}</span>
+               <input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
+               ${ownerSelect(t.owner, 'tasks', i)}
+               <button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button>
+               <input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
+               <button onclick="state.tasks.splice(${i},1);save();render()" style="background:none; border:none; cursor:pointer;">🗑️</button>
+           </div>`).join('');
+
+       document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `
+           <div class="manage-row">
+               <span>${r.icon||'🎁'}</span>
+               <input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
+               ${ownerSelect(r.owner, 'rewards', i)}
+               <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
+               <button onclick="state.rewards.splice(${i},1);save();render()" style="background:none; border:none; cursor:pointer;">🗑️</button>
+           </div>`).join('');
 
        document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `
-           <div class="manage-row"><b>${c.name}</b>: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;"></div>`).join('');
+           <div class="manage-row">
+                <input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();">
+                <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:60px;">
+                <button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button>
+           </div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0});save();render();" style="width:100%; padding:5px; margin-top:10px;">+ הוסף ילד</button>';
        
-       const proofs = state.proofs || {};
-       document.getElementById('proofViewer').innerHTML = Object.entries(proofs).map(([id, p]) => `
+       document.getElementById('proofViewer').innerHTML = Object.entries(state.proofs||{}).map(([id, p]) => `
            <div style="text-align:center; min-width:80px; position:relative;">
                <img src="${p.img}" style="width:70px; height:70px; border-radius:8px; object-fit:cover;">
-               <button onclick="deleteProof('${id}')" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">✕</button>
-               <br><small>${p.by}</small>
+               <button onclick="if(confirm('למחוק?')){delete state.proofs['${id}'];save();render();}" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px;">✕</button>
+               <br><small style="color:#333">${p.by}</small>
            </div>`).join('') || "אין צילומים";
    }
-
-   function deleteProof(id) { if(confirm('למחוק?')) { delete state.proofs[id]; save(); render(); } }
-   function clearAllProofs() { if(confirm('למחוק הכל?')) { state.proofs = {}; save(); render(); } }
 
    function addItem() {
        const type = document.getElementById('addType').value;
        const name = document.getElementById('addName').value;
        const val = parseInt(document.getElementById('addVal').value) || 0;
        const owner = document.getElementById('addOwner').value;
-       const icon = document.getElementById('addIcon').value || (type==='reward'?'🎁':'✨');
+       const icon = document.getElementById('addIcon').value || (type === 'reward' ? '🎁' : '✨');
        
        if(!name) return;
-       const newItem = {id:Date.now(), name, val, icon, owner, current:0, steps:val};
+       const newItem = {id:Date.now(), name, val, icon, owner, needsProof:false, current:0, steps:val};
+       
        if(type==='task') state.tasks.push(newItem);
        else if(type==='reward') state.rewards.push(newItem);
        else if(type==='quest') state.quests.push(newItem);
@@ -423,9 +460,7 @@
 
    function toggleAcc(el) { 
        const p = el.nextElementSibling; 
-       const isOpen = p.style.display === 'block';
-       document.querySelectorAll('.panel').forEach(pan => pan.style.display = 'none');
-       p.style.display = isOpen ? 'none' : 'block'; 
+       p.style.display = p.style.display === 'block' ? 'none' : 'block'; 
    }
    
    function copyChildLinks() {
@@ -445,6 +480,8 @@
        };
        reader.readAsDataURL(file);
    }
+
+   function clearAllProofs() { if(confirm('למחוק הכל?')){state.proofs={};save();render();}}
 </script>
 </body>
 </html>
