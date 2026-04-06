@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V28 - Smart & Ready</title>
+   <title>Family Hero 🌟 V29 - Personal Focus</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -27,6 +27,10 @@
            --bg: #1a1a1b; --text: #dfe6e9; --card-bg: #2d3436; --primary: #a29bfe; 
        }
        
+       /* הגדרות מצב ילד אישי */
+       .is-child-mode .admin-toggle-btn { display: none !important; }
+       .is-child-mode .children-nav { display: none !important; }
+
        #adminWrapper { 
            background: #ffffff !important; color: #2d3436 !important; 
            padding: 20px; border-radius: 20px; margin: 20px 0; 
@@ -40,7 +44,6 @@
        body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; direction: rtl; transition: 0.3s; padding-bottom: 100px; }
        .container { max-width: 1100px; margin: 0 auto; }
        
-       /* כפתור הניהול - תיקון נגישות */
        .admin-toggle-btn {
            position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px;
            background: var(--primary); color: white; border-radius: 50%;
@@ -64,6 +67,15 @@
        .list-item { background: var(--card-bg); border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-right: 6px solid transparent; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
        .list-item.completed { background-color: rgba(46, 204, 113, 0.1); border-right-color: var(--success); }
        .list-item.completed b { text-decoration: line-through; opacity: 0.6; }
+
+       /* כפתור התקדמות משודרג לפרויקטים */
+       .project-btn {
+           width: 100%; margin-top: 10px; padding: 12px; 
+           background: var(--special); color: white; border: none; 
+           border-radius: 10px; font-weight: bold; cursor: pointer;
+           box-shadow: 0 3px 0 #c0392b; transition: 0.2s;
+       }
+       .project-btn:active { transform: translateY(3px); box-shadow: none; }
 
        .btn-v { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--success); background: none; color: var(--success); cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; position: relative; }
        .btn-v.done { background: var(--success); color: white; border: none; }
@@ -166,27 +178,10 @@
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-   // מאגר אימוג'ים לבחירה
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤']
    };
-
-   // נתוני ברירת מחדל (יוזרקו רק אם ה-DB ריק)
-   const defaultTasks = [
-       {id:1, name:"סידור מיטה", val:10, icon:"🛌", owner:"all"}, {id:2, name:"צחצוח שיניים", val:5, icon:"🦷", owner:"all"},
-       {id:3, name:"שיעורי בית", val:20, icon:"📚", owner:"all"}, {id:4, name:"פינוי שולחן", val:15, icon:"🍽️", owner:"all"},
-       {id:5, name:"מקלחת", val:10, icon:"🚿", owner:"all"}, {id:6, name:"סידור חדר", val:25, icon:"🧹", owner:"all"},
-       {id:7, name:"קריאת ספר", val:15, icon:"📖", owner:"all"}, {id:8, name:"זריקת זבל", val:10, icon:"🗑️", owner:"all"},
-       {id:9, name:"כביסה לסל", val:5, icon:"🧺", owner:"all"}, {id:10, name:"התארגנות בוקר", val:15, icon:"👟", owner:"all"}
-   ];
-   const defaultRewards = [
-       {id:101, name:"גלידה", val:100, icon:"🍦", owner:"all"}, {id:102, name:"חצי שעה מסך", val:150, icon:"🎮", owner:"all"},
-       {id:103, name:"ממתק", val:80, icon:"🍭", owner:"all"}, {id:104, name:"סרט", val:500, icon:"🎬", owner:"all"},
-       {id:105, name:"צעצוע", val:300, icon:"🎁", owner:"all"}, {id:106, name:"פיצה", val:400, icon:"🍕", owner:"all"},
-       {id:107, name:"שינה מאוחרת", val:200, icon:"🌙", owner:"all"}, {id:108, name:"חבר", val:150, icon:"🏠", owner:"all"},
-       {id:109, name:"משחק עם אבא", val:100, icon:"🎲", owner:"all"}, {id:110, name:"מתנה גדולה", val:1000, icon:"🏆", owner:"all"}
-   ];
 
    let audioCtx;
    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -231,24 +226,20 @@
    let isInitialLoad = true;
    let showAdmin = isInitialAdmin;
 
+   // הפעלת "מצב ילד" אישי אם יש ID בכתובת ואין פרמטר אדמין
+   if (targetChildId && !isInitialAdmin) {
+       document.body.classList.add('is-child-mode');
+   }
+
    function save() { if(!isInitialLoad) docRef.set(state); }
 
    docRef.onSnapshot(doc => {
        if(doc.exists) {
            state = doc.data();
-           // הזרקת ברירת מחדל אם ריק
-           if(!state.tasks || state.tasks.length === 0) state.tasks = defaultTasks;
-           if(!state.rewards || state.rewards.length === 0) state.rewards = defaultRewards;
-           
            if (isInitialLoad && targetChildId) {
                const idx = state.children.findIndex(c => c.id == targetChildId);
                if (idx !== -1) state.activeChild = idx;
            }
-       } else {
-           // אתחול ראשוני לגמרי
-           state.tasks = defaultTasks;
-           state.rewards = defaultRewards;
-           save();
        }
        isInitialLoad = false;
        updateOwnerDropdowns();
@@ -333,7 +324,7 @@
            <div class="list-item" style="flex-direction:column; align-items:start;">
                <div style="width:100%; display:flex; justify-content:space-between;"><b>${q.icon||'🔥'} ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
                <div style="width:100%; height:8px; background:rgba(0,0,0,0.1); border-radius:5px; margin:5px 0;"><div style="width:${Math.min(((q.current||0)/q.steps)*100, 100)}%; height:100%; background:var(--special); border-radius:5px;"></div></div>
-               <button onclick="advQuest(${q.id})" style="width:100%; background:none; border:1px solid rgba(0,0,0,0.1); border-radius:5px; font-size:0.7rem; color:inherit; cursor:pointer;">התקדמות +</button>
+               <button class="project-btn" onclick="advQuest(${q.id})">התקדמות +</button>
            </div>`).join('');
 
        document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `
