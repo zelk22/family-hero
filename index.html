@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+העתק את כל הקוד למטה (הקוד מלא, אין קיצורים):
+HTML<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V36 - Full Fixes</title>
+   <title>Family Hero 🌟 V38 - Fixed Smart Tasks</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -73,8 +74,9 @@
        @keyframes modalSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
        .quiz-option { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; background: white; font-size: 1.1rem; }
        .quiz-option:hover { background: #f8f9fa; border-color: var(--child-color); transform: scale(1.02); }
-       .modal-close { position: absolute; top: 10px; right: 15px; font-size: 2.2rem; cursor: pointer; color: #ff7675; }
+       .modal-close { position: absolute; top: 15px; right: 20px; font-size: 2.5rem; cursor: pointer; color: #ff7675; font-weight: bold; }
        .parent-message { background: #fff3cd; border-radius: 20px; padding: 15px; margin: 15px 0 10px 0; border-right: 6px solid #f1c40f; font-weight: bold; text-align: center; }
+       .smart-field { margin-bottom: 15px !important; }
    </style>
 </head>
 <body id="mainBody" onclick="initAudio()">
@@ -142,13 +144,14 @@
            <button onclick="toggleDarkMode()" id="darkModeBtn" style="flex: 1; padding:14px; background:#333; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🌙 מצב לילה</button>
        </div>
 
-       <button class="accordion" onclick="toggleAcc(this)">➕ הוספת פריט חדש <span>▼</span></button>
+       <!-- הוספת פריט רגיל -->
+       <button class="accordion" onclick="toggleAcc(this)">➕ הוספת פריט רגיל <span>▼</span></button>
        <div class="panel">
            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items: center;">
                <input type="text" id="addIcon" placeholder="😊" style="width:45px; text-align:center; padding:10px; border-radius:8px; border:1px solid #ccc;">
                <input type="text" id="addName" placeholder="שם המשימה/פרס..." style="flex:2; min-width:150px; padding: 10px; border-radius:8px; border:1px solid #ccc;">
                <input type="number" id="addVal" placeholder="שווי" style="width:65px; padding: 10px; border-radius:8px; border:1px solid #ccc;">
-               <select id="addType" onchange="updateEmojiList(); toggleSmartFields();" style="padding: 10px; border-radius: 8px;">
+               <select id="addType" onchange="updateEmojiList();" style="padding: 10px; border-radius: 8px;">
                    <option value="task">משימה</option>
                    <option value="reward">פרס</option>
                    <option value="quest">פרויקט</option>
@@ -161,21 +164,49 @@
                    <option value="ערב">🌙 ערב</option>
                </select>
                <select id="addOwner" style="padding: 10px; border-radius: 8px;"></select>
-               <select id="addVType" onchange="toggleSmartFields()" style="padding: 10px; border-radius: 8px;">
-                   <option value="none">ללא אימות חכם</option>
-                   <option value="math">🧮 תרגיל כפל</option>
-                   <option value="quiz">📝 שאלת הבנה</option>
-                   <option value="code">🔑 קוד סודי</option>
-               </select>
                <label style="display:flex; align-items:center; gap:5px; font-weight:bold; cursor:pointer;">
                    <input type="checkbox" id="addNeedsApproval"> 👤 אימות הורה
                </label>
-               <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">הוסף למערכת</button>
+               <button onclick="addItem()" style="background:var(--success); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">הוסף</button>
            </div>
-           <div id="smartFields" style="display:none; margin-top:15px; padding:15px; background:rgba(0,0,0,0.05); border-radius:12px;"></div>
            <div id="emojiPicker" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 5px; margin-top:15px; background:rgba(0,0,0,0.05); padding:10px; border-radius:10px;"></div>
        </div>
 
+       <!-- הוספת משימה חכמה – נפרדת ומשופרת -->
+       <button class="accordion" onclick="toggleAcc(this)">➕ הוספת משימה חכמה <span>▼</span></button>
+       <div class="panel">
+           <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+               <input type="text" id="smartName" placeholder="שם המשימה החכמה" style="flex:2; min-width:200px; padding:10px; border-radius:8px; border:1px solid #ccc;">
+               <input type="number" id="smartVal" placeholder="שווי" value="20" style="width:70px; padding:10px; border-radius:8px; border:1px solid #ccc;">
+               <select id="smartVType" onchange="toggleSmartFields2()" style="padding:10px; border-radius:8px;">
+                   <option value="math">🧮 תרגיל כפל</option>
+                   <option value="quiz">📝 שאלה אמריקאית</option>
+                   <option value="open">📝 תשובה פתוחה</option>
+                   <option value="code">🔑 קוד סודי</option>
+               </select>
+               <select id="smartOwner" style="padding:10px; border-radius:8px;"></select>
+               <label style="display:flex; align-items:center; gap:5px; font-weight:bold; cursor:pointer;">
+                   <input type="checkbox" id="smartNeedsApproval"> 👤 אימות הורה
+               </label>
+               <button onclick="addSmartTask()" style="background:var(--success); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">הוסף משימה חכמה</button>
+           </div>
+           <div id="smartFields2" style="margin-top:15px; padding:15px; background:rgba(0,0,0,0.05); border-radius:12px;">
+               <div class="smart-field">
+                   <label>השאלה / תרגיל</label>
+                   <input type="text" id="smartQuestion" placeholder="למשל: כמה זה 7×8?" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-top:5px;">
+               </div>
+               <div class="smart-field">
+                   <label>התשובה הנכונה</label>
+                   <input type="text" id="smartAnswer" placeholder="56" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-top:5px;">
+               </div>
+               <div id="smartOptionsGroup" class="smart-field" style="display:none;">
+                   <label>תשובות מבלבלות (מופרדות בפסיק)</label>
+                   <input type="text" id="smartOptions" placeholder="42,48,64" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-top:5px;">
+               </div>
+           </div>
+       </div>
+
+       <!-- שאר האקורדיונים של V35 (מלאים) -->
        <button class="accordion" onclick="toggleAcc(this)">👶 מצב נקודות ודרגות <span>▼</span></button>
        <div class="panel" id="manageChildren"></div>
       
@@ -216,14 +247,14 @@
        <div class="panel" id="rankSettingsPanel">
            <h4>ערכי בונוס בגלגל המזל</h4>
            <input id="wheelValues" value="10,15,20,25,30,40,50,100" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
-           <button onclick="saveWheelValues()" style="margin-top:10px; padding:10px 20px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;">שמור ערכי גלגל</button>
+           <button onclick="saveWheelValues()" style="margin-top:10px; padding:10px 20px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;">שמור</button>
 
-           <h4 style="margin-top:25px;">שדרוג אווטר (הוצאה בנקודות)</h4>
-           <div id="avatarShop" style="display:flex; gap:15px; flex-wrap:wrap;"></div>
+           <h4 style="margin-top:25px;">שדרוג אווטר (15 אפשרויות)</h4>
+           <div id="avatarShop" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
        </div>
 
        <button onclick="clearActivityLog()" style="width:100%; margin-top:15px; padding:14px; background:#ff7675; color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">🗑️ נקה יומן פעילות והיסטוריה</button>
-       <button onclick="dailyReset()" style="width:100%; margin-top:20px; padding:15px; background:var(--danger); color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer; font-size:1.1rem; box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);">⏰ איפוס יומי ידני (משימות וגלגל)</button>
+       <button onclick="dailyReset()" style="width:100%; margin-top:20px; padding:15px; background:var(--danger); color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer; font-size:1.1rem; box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);">⏰ איפוס יומי ידני</button>
    </div>
 </div>
 
@@ -231,7 +262,7 @@
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-   // ====================== V35 מלא (הקוד ששלחת בדיוק) ======================
+   // ====================== V35 מלא – כל 860 השורות שלך ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -280,7 +311,8 @@
        logs: [],
        redemptions: [],
        pendingApprovals: [],
-       messages: []
+       messages: [],
+       avatars: []
    };
   
    let pendingTaskId = null;
@@ -288,9 +320,7 @@
    let showAdmin = isInitialAdmin;
    let currentFilter = 'all';
   
-   if (targetChildId && !isInitialAdmin) {
-       document.body.classList.add('is-child-mode');
-   }
+   if (targetChildId && !isInitialAdmin) document.body.classList.add('is-child-mode');
   
    function save() { if(!isInitialLoad) docRef.set(state); }
   
@@ -301,6 +331,7 @@
            if (!state.redemptions) state.redemptions = [];
            if (!state.pendingApprovals) state.pendingApprovals = [];
            if (!state.messages) state.messages = [];
+           if (!state.avatars) state.avatars = [];
            state.children.forEach(c => {
                if(c.totalXP === undefined) c.totalXP = c.pts || 0;
                if(c.streak === undefined) c.streak = 0;
@@ -353,29 +384,10 @@
        document.getElementById('emojiPicker').innerHTML = list.map(e => `<span class="emoji-btn" style="cursor:pointer; font-size:1.5rem;" onclick="document.getElementById('addIcon').value='${e}'">${e}</span>`).join('');
    }
   
-   function toggleSmartFields() {
-       const addTypeEl = document.getElementById('addType');
-       const vTypeEl = document.getElementById('addVType');
-       const fields = document.getElementById('smartFields');
-       const optGroup = document.getElementById('optionsGroup');
-      
-       if (!addTypeEl || !vTypeEl || !fields) return;
-      
-       if (addTypeEl.value !== 'task') {
-           fields.style.display = 'none';
-           return;
-       }
-      
-       const vType = vTypeEl.value;
-       fields.style.display = (vType === 'none') ? 'none' : 'block';
-       optGroup.style.display = (vType === 'quiz') ? 'block' : 'none';
-   }
-  
    function openChallenge(task) {
        const modal = document.getElementById('challengeModal');
        const content = document.getElementById('modalContent');
        modal.style.display = 'flex';
-  
        if (task.vType === 'math') {
            const n1 = Math.floor(Math.random() * 8) + 2;
            const n2 = Math.floor(Math.random() * 8) + 2;
@@ -390,16 +402,16 @@
            const badOpts = (task.vOptions || '').split(',').map(s => s.trim()).filter(s => s !== "");
            const allOpts = [task.vAnswer.trim(), ...badOpts].sort(() => Math.random() - 0.5);
            content.innerHTML = `
-               <h2 style="margin-bottom:15px;">📚 שאלת הבנה</h2>
+               <h2 style="margin-bottom:15px;">📚 שאלה אמריקאית</h2>
                <p style="font-size:1.2rem; margin-bottom:20px; line-height:1.4;">${task.vQuestion}</p>
                ${allOpts.map(o => `<button class="quiz-option" onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', '${o.replace(/'/g, "\\'")}')">${o}</button>`).join('')}
            `;
-       } else if (task.vType === 'code') {
+       } else if (task.vType === 'open' || task.vType === 'code') {
            content.innerHTML = `
-               <h2 style="margin-bottom:15px;">🔑 מה הקוד הסודי?</h2>
-               <p style="margin-bottom:15px;">${task.vQuestion || 'הזן את הקוד'}</p>
-               <input type="text" id="codeAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;">
-               <button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('codeAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>
+               <h2 style="margin-bottom:15px;">${task.vType === 'open' ? '📝 תשובה פתוחה' : '🔑 קוד סודי'}</h2>
+               <p style="margin-bottom:15px;">${task.vQuestion}</p>
+               <input type="text" id="openAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;">
+               <button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('openAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>
            `;
        }
    }
@@ -437,10 +449,7 @@
   
    function toggleAdminPanel() {
        showAdmin = !showAdmin;
-       if(showAdmin) {
-           updateEmojiList();
-           toggleSmartFields();
-       }
+       if(showAdmin) updateEmojiList();
        render();
    }
   
@@ -646,7 +655,8 @@
                <select onchange="state.tasks[${i}].vType=this.value;save();render();" style="font-size:0.7rem;">
                    <option value="none" ${(!t.vType || t.vType==='none')?'selected':''}>ללא</option>
                    <option value="math" ${t.vType==='math'?'selected':''}>🧮 כפל</option>
-                   <option value="quiz" ${t.vType==='quiz'?'selected':''}>📝 שאלה</option>
+                   <option value="quiz" ${t.vType==='quiz'?'selected':''}>📝 אמריקאי</option>
+                   <option value="open" ${t.vType==='open'?'selected':''}>📝 פתוחה</option>
                    <option value="code" ${t.vType==='code'?'selected':''}>🔑 קוד</option>
                </select>
                <button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button>
@@ -715,7 +725,6 @@
        const msgSelect = document.getElementById('messageChildSelect');
        if (msgSelect) msgSelect.innerHTML = '<option value="all">לכולם</option>' + (state.children||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       
-       // V36 – פאנל דרגות + אווטר
        renderAvatarShop();
    }
   
@@ -726,24 +735,13 @@
        const owner = document.getElementById('addOwner').value;
        const category = document.getElementById('addCat').value;
        const icon = document.getElementById('addIcon').value || (type === 'reward' ? '🎁' : '✨');
-      
-       const vType = document.getElementById('addVType') ? document.getElementById('addVType').value : 'none';
-       const vQuestion = document.getElementById('addVQuestion') ? document.getElementById('addVQuestion').value : '';
-       const vAnswer = document.getElementById('addVAnswer') ? document.getElementById('addVAnswer').value : '';
-       const vOptions = document.getElementById('addVOptions') ? document.getElementById('addVOptions').value : '';
        const needsParentApproval = document.getElementById('addNeedsApproval') ? document.getElementById('addNeedsApproval').checked : false;
       
        if(!name) return;
       
        const newItem = {id:Date.now(), name, val, icon, owner, category, needsProof:false, current:0, steps:val, needsParentApproval: needsParentApproval};
       
-       if(type==='task') {
-           newItem.vType = vType;
-           newItem.vQuestion = vQuestion;
-           newItem.vAnswer = vAnswer;
-           newItem.vOptions = vOptions;
-           state.tasks.push(newItem);
-       }
+       if(type==='task') state.tasks.push(newItem);
        else if(type==='reward') state.rewards.push(newItem);
        else if(type==='quest') state.quests.push(newItem);
        else if(type==='coop') state.coops.push({id:Date.now(), name, goal:val});
@@ -751,9 +749,46 @@
        save(); render();
        document.getElementById('addName').value='';
        document.getElementById('addIcon').value='';
-       if(document.getElementById('addVQuestion')) document.getElementById('addVQuestion').value = '';
-       if(document.getElementById('addVAnswer')) document.getElementById('addVAnswer').value = '';
-       if(document.getElementById('addVOptions')) document.getElementById('addVOptions').value = '';
+   }
+  
+   function addSmartTask() {
+       const name = document.getElementById('smartName').value;
+       if(!name) return alert("הזן שם למשימה חכמה");
+       const val = parseInt(document.getElementById('smartVal').value) || 20;
+       const vType = document.getElementById('smartVType').value;
+       const question = document.getElementById('smartQuestion').value;
+       const answer = document.getElementById('smartAnswer').value;
+       const options = document.getElementById('smartOptions').value;
+       const owner = document.getElementById('smartOwner').value;
+       const needsParentApproval = document.getElementById('smartNeedsApproval').checked;
+      
+       const newTask = {
+           id: Date.now(),
+           name: name,
+           val: val,
+           icon: '🧩',
+           owner: owner,
+           vType: vType,
+           vQuestion: question,
+           vAnswer: answer,
+           vOptions: options,
+           needsProof: false,
+           needsParentApproval: needsParentApproval
+       };
+      
+       state.tasks.push(newTask);
+       save(); render();
+       alert("✅ משימה חכמה נוספה!");
+       document.getElementById('smartName').value = '';
+       document.getElementById('smartQuestion').value = '';
+       document.getElementById('smartAnswer').value = '';
+       document.getElementById('smartOptions').value = '';
+   }
+  
+   function toggleSmartFields2() {
+       const vType = document.getElementById('smartVType').value;
+       const optGroup = document.getElementById('smartOptionsGroup');
+       optGroup.style.display = (vType === 'quiz') ? 'block' : 'none';
    }
   
    function completeTask(id, val, taskName) {
@@ -783,7 +818,83 @@
        sounds.task();
        confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
        save(); render();
-       checkAllTasksDone();   // <-- חדש
+       setTimeout(checkAllTasksDone, 300);   // תיקון – קצת עיכוב כדי שתמיד תבדוק אחרי הסימון
+   }
+  
+   function checkAllTasksDone() {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
+       if(tasksToday.length > 0 && done.length >= tasksToday.length && !state.allTasksDoneToday) {
+           state.allTasksDoneToday = true;
+           applauseSound();
+           confetti({particleCount:250, spread:120, origin:{y:0.6}});
+           alert("🎉 ברכות! סיימת את כל המשימות להיום!");
+           addLog(`🎉 ${child.name} סיים את כל המשימות להיום!`);
+           save();
+       }
+   }
+  
+   function applauseSound() {
+       [523,659,783,1046,1318,1568].forEach((f,i) => playTone(f,'sine',0.3,0.2,0,i*60));
+   }
+  
+   function renderAvatarShop() {
+       let html = '';
+       const avatars = [
+           {emoji:'🦸‍♂️', name:'סופרמן', cost:50},
+           {emoji:'👑', name:'מלך', cost:80},
+           {emoji:'🐉', name:'דרקון', cost:120},
+           {emoji:'🚀', name:'אסטרונאוט', cost:60},
+           {emoji:'🧙‍♂️', name:'קוסם', cost:90},
+           {emoji:'🦸‍♀️', name:'סופרגירל', cost:50},
+           {emoji:'🐼', name:'פנדה', cost:40},
+           {emoji:'🦄', name:'חד קרן', cost:70},
+           {emoji:'🤖', name:'רובוט', cost:100},
+           {emoji:'🦁', name:'אריה', cost:55},
+           {emoji:'🌈', name:'קשת', cost:45},
+           {emoji:'🧜‍♂️', name:'טריטון', cost:85},
+           {emoji:'🧚', name:'פיה', cost:65},
+           {emoji:'🦅', name:'נשר', cost:75},
+           {emoji:'🐺', name:'זאב', cost:95}
+       ];
+       avatars.forEach((av, i) => {
+           html += `<div onclick="buyAvatar(${av.cost}, '${av.emoji}')" class="avatar-item">${av.emoji}<br><small>${av.cost}💎</small></div>`;
+       });
+       document.getElementById('avatarShop').innerHTML = html;
+   }
+  
+   function buyAvatar(cost, emoji) {
+       const child = state.children[state.activeChild];
+       if(child.pts >= cost && confirm(`לשדרג לאווטר ${emoji} ב-${cost} נקודות?`)) {
+           child.pts -= cost;
+           if(!state.avatars) state.avatars = [];
+           state.avatars.push({emoji: emoji, date: new Date().toLocaleDateString('he-IL')});
+           addLog(`${child.name} שדרג אווטר ל-${emoji}`);
+           save(); render();
+           alert(`🎉 האווטר שלך עודכן ל-${emoji}!`);
+       }
+   }
+  
+   function saveWheelValues() {
+       const val = document.getElementById('wheelValues').value.trim();
+       wheelOptions = val.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+       if (wheelOptions.length === 0) wheelOptions = [10,15,20,25,30,40,50,100];
+       alert("✅ ערכי הגלגל נשמרו!");
+       save();
+   }
+  
+   function spinWheel() {
+       const child = state.children[state.activeChild];
+       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
+       alert("🎡 הגלגל מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
+       child.pts += bonus;
+       child.totalXP += bonus;
+       if(!state.wheelDone) state.wheelDone = {};
+       state.wheelDone[child.id] = true;
+       addLog(`${child.name} זכה בגלגל ב-${bonus} נקודות`);
+       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
+       save(); render();
    }
   
    function buy(v, rewardName) {
@@ -796,21 +907,6 @@
        } else if (c.pts < v) {
            alert("חסרות לך עוד " + (v - c.pts) + " נקודות...");
        }
-   }
-  
-   function spinWheel() {
-       const child = state.children[state.activeChild];
-       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
-      
-       alert("🎡 הגלגל מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
-      
-       child.pts += bonus;
-       child.totalXP += bonus;
-       if(!state.wheelDone) state.wheelDone = {};
-       state.wheelDone[child.id] = true;
-       addLog(`${child.name} זכה בגלגל ב-${bonus} נקודות`);
-       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
-       save(); render();
    }
   
    function advQuest(id, qName) {
@@ -833,6 +929,7 @@
        if(confirm('האם לאפס את ביצועי המשימות להיום ואת גלגל המזל? (הנקודות וה-XP לא יימחקו)')) {
            state.dailyDone = {};
            state.wheelDone = {};
+           state.allTasksDoneToday = false;
            addLog("בוצע איפוס יומי על ידי הורה.");
            save(); render();
        }
@@ -865,52 +962,7 @@
   
    function clearAllProofs() { if(confirm('למחוק את כל הזיכרונות והתמונות?')){state.proofs={};save();render();}}
   
-   // ====================== V36 תוספות ======================
    let wheelOptions = [10,15,20,25,30,40,50,100];
-  
-   function saveWheelValues() {
-       const val = document.getElementById('wheelValues').value.trim();
-       wheelOptions = val.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-       if (wheelOptions.length === 0) wheelOptions = [10,15,20,25,30,40,50,100];
-       alert("✅ ערכי הגלגל נשמרו!");
-       save();
-   }
-  
-   function applauseSound() {
-       [523,659,783,1046,1318,1568].forEach((f,i) => playTone(f,'sine',0.3,0.2,0,i*60));
-   }
-  
-   function checkAllTasksDone() {
-       const child = state.children[state.activeChild];
-       const done = state.dailyDone[child.id] || [];
-       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
-       if(tasksToday.length > 0 && done.length >= tasksToday.length) {
-           applauseSound();
-           confetti({particleCount:250, spread:120, origin:{y:0.6}});
-           alert("🎉 ברכות! סיימת את כל המשימות להיום!");
-           addLog(`🎉 ${child.name} סיים את כל המשימות להיום!`);
-       }
-   }
-  
-   function renderAvatarShop() {
-       document.getElementById('avatarShop').innerHTML = `
-           <div onclick="buyAvatar(50,'🦸‍♂️')" style="cursor:pointer;font-size:3rem;text-align:center;border:2px solid #ddd;border-radius:15px;padding:10px;width:80px;">🦸‍♂️<br><small>50💎</small></div>
-           <div onclick="buyAvatar(80,'👑')" style="cursor:pointer;font-size:3rem;text-align:center;border:2px solid #ddd;border-radius:15px;padding:10px;width:80px;">👑<br><small>80💎</small></div>
-           <div onclick="buyAvatar(120,'🐉')" style="cursor:pointer;font-size:3rem;text-align:center;border:2px solid #ddd;border-radius:15px;padding:10px;width:80px;">🐉<br><small>120💎</small></div>`;
-   }
-  
-   function buyAvatar(cost, emoji) {
-       const child = state.children[state.activeChild];
-       if(child.pts >= cost && confirm(`לשדרג אווטר ל-${emoji} ב-${cost} נקודות?`)) {
-           child.pts -= cost;
-           addLog(`${child.name} שדרג אווטר ל-${emoji}`);
-           save(); render();
-           alert(`🎉 האווטר שלך עודכן ל-${emoji}!`);
-       }
-   }
-  
-   // עדכון renderAdmin (מוסיף את הפאנל)
-   // (הפונקציה renderAdmin כבר כוללת את renderAvatarShop(); )
   
    // ====================== סיום ======================
    render();
