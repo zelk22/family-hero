@@ -1,5 +1,4 @@
-העתק את כל הקוד למטה (הקוד מלא, אין קיצורים):
-HTML<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
    <meta charset="UTF-8">
@@ -77,13 +76,13 @@ HTML<!DOCTYPE html>
        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 2.5rem; cursor: pointer; color: #ff7675; font-weight: bold; }
        .parent-message { background: #fff3cd; border-radius: 20px; padding: 15px; margin: 15px 0 10px 0; border-right: 6px solid #f1c40f; font-weight: bold; text-align: center; }
        .smart-field { margin-bottom: 15px !important; }
+       .avatar-item { font-size: 3rem; cursor: pointer; padding: 12px; border: 2px solid #ddd; border-radius: 15px; text-align: center; width: 100px; margin: 6px; transition: all 0.2s; }
+       .avatar-item:hover { transform: scale(1.08); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
    </style>
 </head>
 <body id="mainBody" onclick="initAudio()">
 <div id="challengeModal">
-   <div class="modal-content" id="modalContent">
-       <span class="modal-close" onclick="document.getElementById('challengeModal').style.display='none'">✕</span>
-   </div>
+   <div class="modal-content" id="modalContent"></div>
 </div>
 
 <div class="container">
@@ -111,6 +110,7 @@ HTML<!DOCTYPE html>
        <small id="nextGoalText" style="font-weight: 800; display: block; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"></small>
       
        <button id="wheelBtn" class="wheel-btn" onclick="spinWheel()">🎡 בונוס גלגל המזל!</button>
+       <button id="bonusWheelBtn" class="wheel-btn" onclick="spinBonusWheel()" style="display: none; background: linear-gradient(135deg, #00cec9, #00b4a8); animation: none;">🎡 גלגל צ'ופר!</button>
    </div>
 
    <div id="parentMessageBox" class="parent-message" style="display:none;"></div>
@@ -133,6 +133,14 @@ HTML<!DOCTYPE html>
        <div>
            <h2 style="color: var(--loot);">💎 חנות פרסים</h2>
            <div id="rewardsList"></div>
+           
+           <!-- תפריט לחיץ חנות אווטרים – מוצב במקביל לפרויקטים, מתחת לפרסים -->
+           <h3 onclick="toggleAvatarShop()" id="avatarHeader" style="color: var(--child-color); margin-top: 30px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+               🎨 חנות אווטרים 
+               <small style="font-size:0.7rem; background:var(--child-color); color:white; padding:2px 8px; border-radius:10px;">שדרג את הגיבור שלך!</small> 
+               <span id="avatarToggleIcon" style="margin-left:auto; font-size:1.1rem;">▼</span>
+           </h3>
+           <div id="avatarShopMain" style="display:none; flex-wrap:wrap; justify-content:center; gap:12px; padding:15px 0;"></div>
        </div>
    </div>
 
@@ -172,7 +180,7 @@ HTML<!DOCTYPE html>
            <div id="emojiPicker" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 5px; margin-top:15px; background:rgba(0,0,0,0.05); padding:10px; border-radius:10px;"></div>
        </div>
 
-       <!-- הוספת משימה חכמה – נפרדת ומשופרת -->
+       <!-- הוספת משימה חכמה -->
        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת משימה חכמה <span>▼</span></button>
        <div class="panel">
            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
@@ -206,7 +214,7 @@ HTML<!DOCTYPE html>
            </div>
        </div>
 
-       <!-- שאר האקורדיונים של V35 (מלאים) -->
+       <!-- שאר האקורדיונים -->
        <button class="accordion" onclick="toggleAcc(this)">👶 מצב נקודות ודרגות <span>▼</span></button>
        <div class="panel" id="manageChildren"></div>
       
@@ -218,6 +226,9 @@ HTML<!DOCTYPE html>
            <h4>🤝 אתגרים משפחתיים</h4><div id="manageCoops"></div>
        </div>
       
+       <button class="accordion" onclick="toggleAcc(this)">🎨 ניהול אווטרים (עריכה, מחיקה, שינוי שם/שווי) <span>▼</span></button>
+       <div class="panel" id="manageAvatarsPanel"></div>
+
        <button class="accordion" onclick="toggleAcc(this)">📸 גלריית הוכחות <span>▼</span></button>
        <div class="panel">
            <button onclick="clearAllProofs()" style="background: var(--danger); color: white; border: none; padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; cursor:pointer; font-weight:bold;">🗑️ מחק את כל התמונות</button>
@@ -249,7 +260,7 @@ HTML<!DOCTYPE html>
            <input id="wheelValues" value="10,15,20,25,30,40,50,100" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
            <button onclick="saveWheelValues()" style="margin-top:10px; padding:10px 20px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;">שמור</button>
 
-           <h4 style="margin-top:25px;">שדרוג אווטר (15 אפשרויות)</h4>
+           <h4 style="margin-top:25px;">תצוגה מקדימה של חנות האווטרים</h4>
            <div id="avatarShop" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
        </div>
 
@@ -262,7 +273,7 @@ HTML<!DOCTYPE html>
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-   // ====================== V35 מלא – כל 860 השורות שלך ======================
+   // ====================== V38 – כל התיקונים + שיפור תצוגת אווטרים ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -312,13 +323,17 @@ HTML<!DOCTYPE html>
        redemptions: [],
        pendingApprovals: [],
        messages: [],
-       avatars: []
+       avatars: [],
+       extraWheelSpins: {},
+       allTasksDoneToday: {},
+       availableAvatars: []
    };
   
    let pendingTaskId = null;
    let isInitialLoad = true;
    let showAdmin = isInitialAdmin;
    let currentFilter = 'all';
+   let wheelOptions = [10,15,20,25,30,40,50,100];
   
    if (targetChildId && !isInitialAdmin) document.body.classList.add('is-child-mode');
   
@@ -328,10 +343,46 @@ HTML<!DOCTYPE html>
        if(doc.exists) {
            const data = doc.data();
            state = {...state, ...data};
+           
+           if (!state.availableAvatars || state.availableAvatars.length === 0) {
+               state.availableAvatars = [
+                   {id:1, emoji:'🦸‍♂️', name:'סופרמן', cost:50},
+                   {id:2, emoji:'👑', name:'מלך', cost:80},
+                   {id:3, emoji:'🐉', name:'דרקון', cost:120},
+                   {id:4, emoji:'🚀', name:'אסטרונאוט', cost:60},
+                   {id:5, emoji:'🧙‍♂️', name:'קוסם', cost:90},
+                   {id:6, emoji:'🦸‍♀️', name:'סופרגירל', cost:50},
+                   {id:7, emoji:'🐼', name:'פנדה', cost:40},
+                   {id:8, emoji:'🦄', name:'חד קרן', cost:70},
+                   {id:9, emoji:'🤖', name:'רובוט', cost:100},
+                   {id:10, emoji:'🦁', name:'אריה', cost:55},
+                   {id:11, emoji:'🌈', name:'קשת', cost:45},
+                   {id:12, emoji:'🧜‍♂️', name:'טריטון', cost:85},
+                   {id:13, emoji:'🧚', name:'פיה', cost:65},
+                   {id:14, emoji:'🦅', name:'נשר', cost:75},
+                   {id:15, emoji:'🐺', name:'זאב', cost:95},
+                   {id:16, emoji:'🛡️', name:'דוד המלך', cost:70},
+                   {id:17, emoji:'🪄', name:'משה רבנו', cost:85},
+                   {id:18, emoji:'🌳', name:'אברהם אבינו', cost:60},
+                   {id:19, emoji:'📜', name:'שמואל הנביא', cost:65},
+                   {id:20, emoji:'🏹', name:'דבורה הנביאה', cost:55},
+                   {id:21, emoji:'🐑', name:'רחל אמנו', cost:50},
+                   {id:22, emoji:'🧥', name:'יוסף הצדיק', cost:90},
+                   {id:23, emoji:'🦁', name:'שמשון הגיבור', cost:75},
+                   {id:24, emoji:'👑', name:'אסתר המלכה', cost:70},
+                   {id:25, emoji:'🗡️', name:'גדעון', cost:60},
+                   {id:26, emoji:'🌟', name:'יהושע בן נון', cost:80},
+                   {id:27, emoji:'🐪', name:'יעקב אבינו', cost:65}
+               ];
+           }
+           
            if (!state.redemptions) state.redemptions = [];
            if (!state.pendingApprovals) state.pendingApprovals = [];
            if (!state.messages) state.messages = [];
            if (!state.avatars) state.avatars = [];
+           if (!state.extraWheelSpins) state.extraWheelSpins = {};
+           if (!state.allTasksDoneToday) state.allTasksDoneToday = {};
+           
            state.children.forEach(c => {
                if(c.totalXP === undefined) c.totalXP = c.pts || 0;
                if(c.streak === undefined) c.streak = 0;
@@ -388,31 +439,19 @@ HTML<!DOCTYPE html>
        const modal = document.getElementById('challengeModal');
        const content = document.getElementById('modalContent');
        modal.style.display = 'flex';
+       const closeHTML = `<span class="modal-close" onclick="document.getElementById('challengeModal').style.display='none'">✕</span>`;
+       
        if (task.vType === 'math') {
            const n1 = Math.floor(Math.random() * 8) + 2;
            const n2 = Math.floor(Math.random() * 8) + 2;
            const ans = n1 * n2;
-           content.innerHTML = `
-               <h2 style="font-size:2rem; margin-bottom:10px;">🧮 אתגר חשבון!</h2>
-               <p style="font-size:1.6rem; font-weight:bold; margin:20px 0;">כמה זה ${n1} × ${n2}?</p>
-               <input type="number" id="mathAns" style="font-size:2rem; text-align:center; width:140px; padding:10px; border:3px solid var(--primary); border-radius:12px;">
-               <button onclick="checkChallenge(${task.id}, ${ans}, document.getElementById('mathAns').value)" style="margin-top:25px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">✅ בדוק תשובה</button>
-           `;
+           content.innerHTML = `${closeHTML}<h2 style="font-size:2rem; margin-bottom:10px;">🧮 אתגר חשבון!</h2><p style="font-size:1.6rem; font-weight:bold; margin:20px 0;">כמה זה ${n1} × ${n2}?</p><input type="number" id="mathAns" style="font-size:2rem; text-align:center; width:140px; padding:10px; border:3px solid var(--primary); border-radius:12px;"><button onclick="checkChallenge(${task.id}, ${ans}, document.getElementById('mathAns').value)" style="margin-top:25px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">✅ בדוק תשובה</button>`;
        } else if (task.vType === 'quiz') {
            const badOpts = (task.vOptions || '').split(',').map(s => s.trim()).filter(s => s !== "");
            const allOpts = [task.vAnswer.trim(), ...badOpts].sort(() => Math.random() - 0.5);
-           content.innerHTML = `
-               <h2 style="margin-bottom:15px;">📚 שאלה אמריקאית</h2>
-               <p style="font-size:1.2rem; margin-bottom:20px; line-height:1.4;">${task.vQuestion}</p>
-               ${allOpts.map(o => `<button class="quiz-option" onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', '${o.replace(/'/g, "\\'")}')">${o}</button>`).join('')}
-           `;
+           content.innerHTML = `${closeHTML}<h2 style="margin-bottom:15px;">📚 שאלה אמריקאית</h2><p style="font-size:1.2rem; margin-bottom:20px; line-height:1.4;">${task.vQuestion}</p>${allOpts.map(o => `<button class="quiz-option" onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', '${o.replace(/'/g, "\\'")}')">${o}</button>`).join('')}`;
        } else if (task.vType === 'open' || task.vType === 'code') {
-           content.innerHTML = `
-               <h2 style="margin-bottom:15px;">${task.vType === 'open' ? '📝 תשובה פתוחה' : '🔑 קוד סודי'}</h2>
-               <p style="margin-bottom:15px;">${task.vQuestion}</p>
-               <input type="text" id="openAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;">
-               <button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('openAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>
-           `;
+           content.innerHTML = `${closeHTML}<h2 style="margin-bottom:15px;">${task.vType === 'open' ? '📝 תשובה פתוחה' : '🔑 קוד סודי'}</h2><p style="margin-bottom:15px;">${task.vQuestion}</p><input type="text" id="openAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;"><button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('openAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>`;
        }
    }
   
@@ -460,6 +499,15 @@ HTML<!DOCTYPE html>
        render();
    }
   
+   function toggleAvatarShop() {
+       const shop = document.getElementById('avatarShopMain');
+       const icon = document.getElementById('avatarToggleIcon');
+       const isHidden = shop.style.display === 'none' || !shop.style.display;
+       shop.style.display = isHidden ? 'flex' : 'none';
+       icon.textContent = isHidden ? '▲' : '▼';
+       if (isHidden) renderAvatarShopMain();
+   }
+  
    function render() {
        if(!state.children || !state.children[state.activeChild]) return;
        const child = state.children[state.activeChild];
@@ -492,46 +540,32 @@ HTML<!DOCTYPE html>
            .filter(t => currentFilter === 'all' || t.category === currentFilter)
            .map(t => {
                const isPending = (state.pendingApprovals || []).some(p => p.taskId === t.id && p.childId === child.id);
-               return `
-               <div class="list-item ${done.includes(t.id)?'completed':isPending?'pending':''}">
-                   <div>
-                       <span style="font-size:1.6rem; margin-left:10px;">${t.icon||'✨'}</span>
-                       <b>${t.name}</b>
-                       <div style="font-size:0.7rem; opacity:0.6;">${t.category ? '🏷️ '+t.category : ''} (+${t.val}💎)</div>
-                   </div>
-                   <button class="btn-v ${done.includes(t.id)?'done':''} ${t.needsProof?'needs-camera':''} ${(t.vType && t.vType !== 'none') ? 'has-quiz' : ''} ${t.needsParentApproval?'needs-approval':''}"
-                           onclick="handleTaskClick(${t.id})">✓</button>
-               </div>`;
+               return `<div class="list-item ${done.includes(t.id)?'completed':isPending?'pending':''}"><div><span style="font-size:1.6rem; margin-left:10px;">${t.icon||'✨'}</span><b>${t.name}</b><div style="font-size:0.7rem; opacity:0.6;">${t.category ? '🏷️ '+t.category : ''} (+${t.val}💎)</div></div><button class="btn-v ${done.includes(t.id)?'done':''} ${t.needsProof?'needs-camera':''} ${(t.vType && t.vType !== 'none') ? 'has-quiz' : ''} ${t.needsParentApproval?'needs-approval':''}" onclick="handleTaskClick(${t.id})">✓</button></div>`;
            }).join('');
       
        document.getElementById('rewardsList').innerHTML = (state.rewards||[]).filter(filterByOwner).map(r => `
-           <div class="list-item">
-               <div><span style="font-size:1.5rem; margin-left:10px;">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div>
-               <button onclick="buy(${r.val}, '${r.name}')" style="background:var(--loot); border:none; padding:10px 20px; border-radius:15px; font-weight:bold; color:#2d3436; cursor:pointer; box-shadow:0 4px 0 #d4ac0d;">פדה</button>
-           </div>`).join('');
+           <div class="list-item"><div><span style="font-size:1.5rem; margin-left:10px;">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div><button onclick="buy(${r.val}, '${r.name}')" style="background:var(--loot); border:none; padding:10px 20px; border-radius:15px; font-weight:bold; color:#2d3436; cursor:pointer; box-shadow:0 4px 0 #d4ac0d;">פדה</button></div>`).join('');
       
        document.getElementById('questsList').innerHTML = (state.quests||[]).filter(filterByOwner).map(q => `
-           <div class="list-item" style="flex-direction:column; align-items:start;">
-               <div style="width:100%; display:flex; justify-content:space-between;"><b>${q.icon||'🔥'} ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div>
-               <div style="width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:5px; margin:8px 0; overflow:hidden;">
-                    <div style="width:${Math.min(((q.current||0)/q.steps)*100, 100)}%; height:100%; background:var(--special); border-radius:5px; transition:0.5s;"></div>
-               </div>
-               <button class="project-btn" onclick="advQuest(${q.id}, '${q.name}')">דיווח התקדמות +1</button>
-           </div>`).join('');
+           <div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.icon||'🔥'} ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div><div style="width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:5px; margin:8px 0; overflow:hidden;"><div style="width:${Math.min(((q.current||0)/q.steps)*100, 100)}%; height:100%; background:var(--special); border-radius:5px; transition:0.5s;"></div></div><button class="project-btn" onclick="advQuest(${q.id}, '${q.name}')">דיווח התקדמות +1</button></div>`).join('');
       
-       document.getElementById('coopArea').innerHTML = (state.coops||[]).map(c => `
-           <div style="background:var(--card-bg); color:var(--text); padding:18px; border-radius:25px; border-right:10px solid var(--coop); margin-bottom:15px; box-shadow:var(--shadow);">
-               <div style="display:flex; justify-content:space-between; align-items:center;">
-                   <b>🤝 אתגר משפחתי: ${c.name}</b>
-                   <span style="font-weight:900;">${totalFamPts}/${c.goal}</span>
-               </div>
-               <div style="width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:5px; margin-top:10px; overflow:hidden;">
-                   <div style="width:${Math.min((totalFamPts/c.goal)*100,100)}%; height:100%; background:var(--coop); border-radius:5px; transition:1s;"></div>
-               </div>
-           </div>`).join('');
+       let coopHTML = '';
+       (state.coops||[]).forEach(c => {
+           const isDone = totalFamPts >= c.goal;
+           const progress = Math.min((totalFamPts / c.goal) * 100, 100);
+           coopHTML += `<div style="background:var(--card-bg); color:var(--text); padding:18px; border-radius:25px; border-right:10px solid var(--coop); margin-bottom:15px; box-shadow:var(--shadow);"><div style="display:flex; justify-content:space-between; align-items:center;"><b>🤝 אתגר משפחתי: ${c.name}</b><span style="font-weight:900;">${isDone ? '✅ הושלם!' : totalFamPts + '/' + c.goal}</span></div>${isDone ? `<div style="color:var(--success); font-weight:bold; font-size:1.1rem; text-align:center; margin:12px 0 8px;">🎉 בוצע בהצלחה! האתגר המשפחתי הושלם!</div>` : `<div style="width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:5px; margin-top:10px; overflow:hidden;"><div style="width:${progress}%; height:100%; background:var(--coop); border-radius:5px; transition:1s;"></div></div>`}</div>`;
+       });
+       document.getElementById('coopArea').innerHTML = coopHTML;
       
        const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
        document.getElementById('wheelBtn').style.display = (done.length >= 5 && !hasUsedWheel) ? 'inline-block' : 'none';
+      
+       const extraSpins = (state.extraWheelSpins && state.extraWheelSpins[child.id]) || 0;
+       const bonusBtn = document.getElementById('bonusWheelBtn');
+       if (bonusBtn) {
+           bonusBtn.style.display = extraSpins > 0 ? 'inline-block' : 'none';
+           bonusBtn.innerHTML = `🎡 גלגל צ'ופר! (${extraSpins})`;
+       }
       
        const msgBox = document.getElementById('parentMessageBox');
        const latest = (state.messages || []).find(m => m.childId === 'all' || m.childId === child.id);
@@ -540,6 +574,8 @@ HTML<!DOCTYPE html>
            msgBox.style.display = 'block';
        } else msgBox.style.display = 'none';
       
+       renderAvatarShopMain();   // עדכון תמידי של החנות (גם אם מוסתר)
+       
        if(showAdmin) renderAdmin();
    }
   
@@ -551,6 +587,7 @@ HTML<!DOCTYPE html>
            const task = state.tasks.find(t => t.id === id);
            if(!task) return;
            state.dailyDone[child.id] = done.filter(x => x !== id);
+           state.allTasksDoneToday[child.id] = false;
            child.pts = Math.max(0, child.pts - task.val);
            child.totalXP = Math.max(0, child.totalXP - task.val);
            save(); render(); return;
@@ -561,15 +598,7 @@ HTML<!DOCTYPE html>
       
        if (task.needsParentApproval) {
            if (!state.pendingApprovals) state.pendingApprovals = [];
-           state.pendingApprovals.push({
-               id: Date.now(),
-               taskId: id,
-               childId: child.id,
-               childName: child.name,
-               taskName: task.name,
-               val: task.val,
-               timestamp: new Date().toLocaleString('he-IL')
-           });
+           state.pendingApprovals.push({id: Date.now(), taskId: id, childId: child.id, childName: child.name, taskName: task.name, val: task.val, timestamp: new Date().toLocaleString('he-IL')});
            addLog(`⏳ ${child.name} ביקש אישור על "${task.name}"`);
            save(); render();
            return;
@@ -615,12 +644,7 @@ HTML<!DOCTYPE html>
        if (!text) return;
        const childId = document.getElementById('messageChildSelect').value;
        if (!state.messages) state.messages = [];
-       state.messages.unshift({
-           id: Date.now(),
-           text: text,
-           childId: childId === 'all' ? 'all' : parseInt(childId),
-           date: new Date().toLocaleString('he-IL')
-       });
+       state.messages.unshift({id: Date.now(), text: text, childId: childId === 'all' ? 'all' : parseInt(childId), date: new Date().toLocaleString('he-IL')});
        addLog(`📨 נשלחה הודעה`);
        save(); render();
        document.getElementById('newMessageText').value = '';
@@ -636,96 +660,70 @@ HTML<!DOCTYPE html>
    }
   
    function renderAdmin() {
-       const ownerSelect = (current, type, idx) => `
-           <select style="font-size:0.75rem; padding:4px;" onchange="state.${type}[${idx}].owner=this.value;save();render();">
-               <option value="all" ${current==='all'?'selected':''}>לכולם</option>
-               ${state.children.map(c=>`<option value="${c.id}" ${current==c.id?'selected':''}>${c.name}</option>`).join('')}
-           </select>`;
+       const ownerSelect = (current, type, idx) => `<select style="font-size:0.75rem; padding:4px;" onchange="state.${type}[${idx}].owner=this.value;save();render();"><option value="all" ${current==='all'?'selected':''}>לכולם</option>${state.children.map(c=>`<option value="${c.id}" ${current==c.id?'selected':''}>${c.name}</option>`).join('')}</select>`;
       
-       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `
+       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `<div class="manage-row"><span>${t.icon||'✨'}</span><input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()"><select onchange="state.tasks[${i}].category=this.value;save();render();" style="font-size:0.7rem;"><option value="" ${!t.category?'selected':''}>ללא קטגוריה</option><option value="בוקר" ${t.category=='בוקר'?'selected':''}>בוקר</option><option value="ערב" ${t.category=='ערב'?'selected':''}>ערב</option></select>${ownerSelect(t.owner, 'tasks', i)}<select onchange="state.tasks[${i}].vType=this.value;save();render();" style="font-size:0.7rem;"><option value="none" ${(!t.vType || t.vType==='none')?'selected':''}>ללא</option><option value="math" ${t.vType==='math'?'selected':''}>🧮 כפל</option><option value="quiz" ${t.vType==='quiz'?'selected':''}>📝 אמריקאי</option><option value="open" ${t.vType==='open'?'selected':''}>📝 פתוחה</option><option value="code" ${t.vType==='code'?'selected':''}>🔑 קוד</option></select><button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button><button style="background:${t.needsParentApproval?'#f1c40f':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsParentApproval=!state.tasks[${i}].needsParentApproval;save();render();">👤</button><input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()"><button onclick="if(confirm('למחוק?')){state.tasks.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('');
+      
+       document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `<div class="manage-row"><span>${r.icon||'🎁'}</span><input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">${ownerSelect(r.owner, 'rewards', i)}<input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()"><button onclick="if(confirm('למחוק?')){state.rewards.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('');
+      
+       document.getElementById('manageQuests').innerHTML = (state.quests||[]).map((q,i) => `<div class="manage-row"><span>${q.icon||'🔥'}</span><input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save();render();"><input type="number" style="width:60px" value="${q.steps||5}" onchange="state.quests[${i}].steps=parseInt(this.value)||5;save();render();">${ownerSelect(q.owner||'all', 'quests', i)}<button onclick="if(confirm('למחוק פרויקט?')){state.quests.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('') || '<small style="opacity:0.6">אין פרויקטים עדיין</small>';
+      
+       document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `<div class="manage-row"><span>🤝</span><input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save();render();"><input type="number" style="width:80px" value="${c.goal||100}" onchange="state.coops[${i}].goal=parseInt(this.value)||100;save();render();"><button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
+      
+       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `<div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;"><b>${i+1}.</b><input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();"><div style="font-size:0.75rem;">XP: <input type="number" value="${c.totalXP}" onchange="state.children[${i}].totalXP=parseInt(this.value);save();render();" style="width:50px;"> 💎: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:50px;"></div><button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button><button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button></div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalXP:0, streak:0, lastDate:\'\'});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש למשפחה</button>';
+      
+       let avatarsHTML = (state.availableAvatars||[]).map((av,i) => `
            <div class="manage-row">
-               <span>${t.icon||'✨'}</span>
-               <input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
-               <select onchange="state.tasks[${i}].category=this.value;save();render();" style="font-size:0.7rem;">
-                   <option value="" ${!t.category?'selected':''}>ללא קטגוריה</option>
-                   <option value="בוקר" ${t.category=='בוקר'?'selected':''}>בוקר</option>
-                   <option value="ערב" ${t.category=='ערב'?'selected':''}>ערב</option>
-               </select>
-               ${ownerSelect(t.owner, 'tasks', i)}
-               <select onchange="state.tasks[${i}].vType=this.value;save();render();" style="font-size:0.7rem;">
-                   <option value="none" ${(!t.vType || t.vType==='none')?'selected':''}>ללא</option>
-                   <option value="math" ${t.vType==='math'?'selected':''}>🧮 כפל</option>
-                   <option value="quiz" ${t.vType==='quiz'?'selected':''}>📝 אמריקאי</option>
-                   <option value="open" ${t.vType==='open'?'selected':''}>📝 פתוחה</option>
-                   <option value="code" ${t.vType==='code'?'selected':''}>🔑 קוד</option>
-               </select>
-               <button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button>
-               <button style="background:${t.needsParentApproval?'#f1c40f':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsParentApproval=!state.tasks[${i}].needsParentApproval;save();render();">👤</button>
-               <input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()">
-               <button onclick="if(confirm('למחוק?')){state.tasks.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
+               <span style="font-size:2.2rem">${av.emoji}</span>
+               <input class="input-edit" value="${av.name}" onchange="state.availableAvatars[${i}].name=this.value;save();render();">
+               <input type="text" style="width:55px;text-align:center" value="${av.emoji}" onchange="state.availableAvatars[${i}].emoji=this.value;save();render();">
+               <input type="number" style="width:70px" value="${av.cost}" onchange="state.availableAvatars[${i}].cost=parseInt(this.value)||50;save();render();">
+               <button onclick="if(confirm('למחוק אווטר זה?')){state.availableAvatars.splice(${i},1);save();render();}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('');
+       avatarsHTML += `<button onclick="addNewAvatar()" style="width:100%; padding:12px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); background:var(--success); color:white; cursor:pointer;">+ הוסף אווטר חדש</button>`;
+       document.getElementById('manageAvatarsPanel').innerHTML = avatarsHTML;
       
-       document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `
-           <div class="manage-row">
-               <span>${r.icon||'🎁'}</span>
-               <input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
-               ${ownerSelect(r.owner, 'rewards', i)}
-               <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
-               <button onclick="if(confirm('למחוק?')){state.rewards.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
-           </div>`).join('');
-      
-       document.getElementById('manageQuests').innerHTML = (state.quests||[]).map((q,i) => `
-           <div class="manage-row">
-               <span>${q.icon||'🔥'}</span>
-               <input class="input-edit" value="${q.name}" onchange="state.quests[${i}].name=this.value;save();render();">
-               <input type="number" style="width:60px" value="${q.steps||5}" onchange="state.quests[${i}].steps=parseInt(this.value)||5;save();render();">
-               ${ownerSelect(q.owner||'all', 'quests', i)}
-               <button onclick="if(confirm('למחוק פרויקט?')){state.quests.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
-           </div>`).join('') || '<small style="opacity:0.6">אין פרויקטים עדיין</small>';
-      
-       document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `
-           <div class="manage-row">
-               <span>🤝</span>
-               <input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save();render();">
-               <input type="number" style="width:80px" value="${c.goal||100}" onchange="state.coops[${i}].goal=parseInt(this.value)||100;save();render();">
-               <button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
-           </div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
-      
-       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `
-           <div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;">
-                <b>${i+1}.</b>
-                <input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();">
-                <div style="font-size:0.75rem;">
-                   XP: <input type="number" value="${c.totalXP}" onchange="state.children[${i}].totalXP=parseInt(this.value);save();render();" style="width:50px;">
-                   💎: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:50px;">
-                </div>
-                <button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button>
-           </div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalXP:0, streak:0, lastDate:\'\'});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש למשפחה</button>';
-      
-       document.getElementById('proofViewer').innerHTML = Object.entries(state.proofs||{}).map(([id, p]) => `
-           <div style="text-align:center; min-width:90px; position:relative; background:white; padding:5px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-               <img src="${p.img}" style="width:80px; height:80px; border-radius:8px; object-fit:cover;" onclick="window.open(this.src)">
-               <button onclick="if(confirm('למחוק תמונה?')){delete state.proofs['${id}'];save();render();}" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button>
-               <div style="font-size:0.7rem; font-weight:bold; margin-top:3px;">${p.by}</div>
-           </div>`).join('') || "אין צילומים כרגע";
+       document.getElementById('proofViewer').innerHTML = Object.entries(state.proofs||{}).map(([id, p]) => `<div style="text-align:center; min-width:90px; position:relative; background:white; padding:5px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"><img src="${p.img}" style="width:80px; height:80px; border-radius:8px; object-fit:cover;" onclick="window.open(this.src)"><button onclick="if(confirm('למחוק תמונה?')){delete state.proofs['${id}'];save();render();}" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button><div style="font-size:0.7rem; font-weight:bold; margin-top:3px;">${p.by}</div></div>`).join('') || "אין צילומים כרגע";
       
        document.getElementById('activityLog').innerHTML = (state.logs||[]).join('<br>') || "אין פעילות.";
        document.getElementById('redemptionLog').innerHTML = (state.redemptions||[]).map(r => `<div><b>${r.date}</b>: ${r.childName} פדה את <b>${r.rewardName}</b></div>`).join('') || "אין רכישות עדיין.";
       
-       let pendingHTML = (state.pendingApprovals || []).length ? (state.pendingApprovals || []).map(p => `
-           <div class="manage-row" style="background:#fff3cd;border-radius:12px;">
-               <div><b>${p.childName}</b> — ${p.taskName} (+${p.val}💎)</div>
-               <div style="margin-left:auto;display:flex;gap:8px;">
-                   <button onclick="approvePending(${p.id})" style="background:var(--success);color:white;border:none;padding:8px 16px;border-radius:8px;">✅ אשר</button>
-                   <button onclick="rejectPending(${p.id})" style="background:var(--danger);color:white;border:none;padding:8px 16px;border-radius:8px;">❌ דחה</button>
-               </div>
-           </div>`).join('') : '<p style="text-align:center;opacity:0.6;">אין משימות ממתינות</p>';
+       let pendingHTML = (state.pendingApprovals || []).length ? (state.pendingApprovals || []).map(p => `<div class="manage-row" style="background:#fff3cd;border-radius:12px;"><div><b>${p.childName}</b> — ${p.taskName} (+${p.val}💎)</div><div style="margin-left:auto;display:flex;gap:8px;"><button onclick="approvePending(${p.id})" style="background:var(--success);color:white;border:none;padding:8px 16px;border-radius:8px;">✅ אשר</button><button onclick="rejectPending(${p.id})" style="background:var(--danger);color:white;border:none;padding:8px 16px;border-radius:8px;">❌ דחה</button></div></div>`).join('') : '<p style="text-align:center;opacity:0.6;">אין משימות ממתינות</p>';
        document.getElementById('pendingApprovalsPanel').innerHTML = pendingHTML;
       
        const msgSelect = document.getElementById('messageChildSelect');
        if (msgSelect) msgSelect.innerHTML = '<option value="all">לכולם</option>' + (state.children||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       
-       renderAvatarShop();
+       renderAvatarShop();   // תצוגה מקדימה באדמין
+   }
+  
+   function addNewAvatar() {
+       const newAv = {id: Date.now(), emoji: '⭐', name: 'אווטר חדש', cost: 50};
+       if(!state.availableAvatars) state.availableAvatars = [];
+       state.availableAvatars.push(newAv);
+       addLog('🎨 נוסף אווטר חדש');
+       save(); render();
+   }
+  
+   function grantWheelSpin(childId) {
+       if(!state.extraWheelSpins) state.extraWheelSpins = {};
+       state.extraWheelSpins[childId] = (state.extraWheelSpins[childId] || 0) + 1;
+       const childName = state.children.find(c => c.id === childId).name;
+       addLog(`🎡 הורה העניק גלגל מזל נוסף ל${childName}`);
+       save(); render();
+   }
+  
+   function spinBonusWheel() {
+       const child = state.children[state.activeChild];
+       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
+       alert("🎡 גלגל הצ'ופר מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
+       child.pts += bonus;
+       child.totalXP += bonus;
+       if(!state.extraWheelSpins) state.extraWheelSpins = {};
+       state.extraWheelSpins[child.id] = Math.max(0, (state.extraWheelSpins[child.id] || 1) - 1);
+       addLog(`${child.name} זכה בגלגל צ'ופר ב-${bonus} נקודות`);
+       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
+       save(); render();
    }
   
    function addItem() {
@@ -762,19 +760,7 @@ HTML<!DOCTYPE html>
        const owner = document.getElementById('smartOwner').value;
        const needsParentApproval = document.getElementById('smartNeedsApproval').checked;
       
-       const newTask = {
-           id: Date.now(),
-           name: name,
-           val: val,
-           icon: '🧩',
-           owner: owner,
-           vType: vType,
-           vQuestion: question,
-           vAnswer: answer,
-           vOptions: options,
-           needsProof: false,
-           needsParentApproval: needsParentApproval
-       };
+       const newTask = {id: Date.now(), name: name, val: val, icon: '🧩', owner: owner, vType: vType, vQuestion: question, vAnswer: answer, vOptions: options, needsProof: false, needsParentApproval: needsParentApproval};
       
        state.tasks.push(newTask);
        save(); render();
@@ -818,15 +804,15 @@ HTML<!DOCTYPE html>
        sounds.task();
        confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
        save(); render();
-       setTimeout(checkAllTasksDone, 300);   // תיקון – קצת עיכוב כדי שתמיד תבדוק אחרי הסימון
+       setTimeout(checkAllTasksDone, 300);
    }
   
    function checkAllTasksDone() {
        const child = state.children[state.activeChild];
        const done = state.dailyDone[child.id] || [];
        const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
-       if(tasksToday.length > 0 && done.length >= tasksToday.length && !state.allTasksDoneToday) {
-           state.allTasksDoneToday = true;
+       if(tasksToday.length > 0 && done.length >= tasksToday.length && !(state.allTasksDoneToday[child.id] || false)) {
+           state.allTasksDoneToday[child.id] = true;
            applauseSound();
            confetti({particleCount:250, spread:120, origin:{y:0.6}});
            alert("🎉 ברכות! סיימת את כל המשימות להיום!");
@@ -841,38 +827,33 @@ HTML<!DOCTYPE html>
   
    function renderAvatarShop() {
        let html = '';
-       const avatars = [
-           {emoji:'🦸‍♂️', name:'סופרמן', cost:50},
-           {emoji:'👑', name:'מלך', cost:80},
-           {emoji:'🐉', name:'דרקון', cost:120},
-           {emoji:'🚀', name:'אסטרונאוט', cost:60},
-           {emoji:'🧙‍♂️', name:'קוסם', cost:90},
-           {emoji:'🦸‍♀️', name:'סופרגירל', cost:50},
-           {emoji:'🐼', name:'פנדה', cost:40},
-           {emoji:'🦄', name:'חד קרן', cost:70},
-           {emoji:'🤖', name:'רובוט', cost:100},
-           {emoji:'🦁', name:'אריה', cost:55},
-           {emoji:'🌈', name:'קשת', cost:45},
-           {emoji:'🧜‍♂️', name:'טריטון', cost:85},
-           {emoji:'🧚', name:'פיה', cost:65},
-           {emoji:'🦅', name:'נשר', cost:75},
-           {emoji:'🐺', name:'זאב', cost:95}
-       ];
-       avatars.forEach((av, i) => {
-           html += `<div onclick="buyAvatar(${av.cost}, '${av.emoji}')" class="avatar-item">${av.emoji}<br><small>${av.cost}💎</small></div>`;
+       (state.availableAvatars || []).forEach(av => {
+           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${av.emoji}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
        });
        document.getElementById('avatarShop').innerHTML = html;
    }
   
-   function buyAvatar(cost, emoji) {
+   function renderAvatarShopMain() {
+       let html = '';
+       (state.availableAvatars || []).forEach(av => {
+           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${av.emoji}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
+       });
+       document.getElementById('avatarShopMain').innerHTML = html || '<p style="opacity:0.6; text-align:center; width:100%;">אין אווטרים זמינים כרגע</p>';
+   }
+  
+   function buyAvatar(id) {
+       const av = state.availableAvatars.find(a => a.id === id);
+       if (!av) return;
        const child = state.children[state.activeChild];
-       if(child.pts >= cost && confirm(`לשדרג לאווטר ${emoji} ב-${cost} נקודות?`)) {
-           child.pts -= cost;
+       if (child.pts >= av.cost && confirm(`לשדרג לאווטר ${av.emoji} ${av.name} ב-${av.cost} נקודות?`)) {
+           child.pts -= av.cost;
            if(!state.avatars) state.avatars = [];
-           state.avatars.push({emoji: emoji, date: new Date().toLocaleDateString('he-IL')});
-           addLog(`${child.name} שדרג אווטר ל-${emoji}`);
+           state.avatars.push({id: av.id, emoji: av.emoji, name: av.name, date: new Date().toLocaleDateString('he-IL')});
+           addLog(`${child.name} שדרג אווטר ל-${av.name}`);
            save(); render();
-           alert(`🎉 האווטר שלך עודכן ל-${emoji}!`);
+           alert(`🎉 האווטר שלך עודכן ל-${av.emoji} ${av.name}!`);
+       } else if (child.pts < av.cost) {
+           alert("חסרות לך עוד " + (av.cost - child.pts) + " נקודות...");
        }
    }
   
@@ -929,7 +910,7 @@ HTML<!DOCTYPE html>
        if(confirm('האם לאפס את ביצועי המשימות להיום ואת גלגל המזל? (הנקודות וה-XP לא יימחקו)')) {
            state.dailyDone = {};
            state.wheelDone = {};
-           state.allTasksDoneToday = false;
+           state.allTasksDoneToday = {};
            addLog("בוצע איפוס יומי על ידי הורה.");
            save(); render();
        }
@@ -962,9 +943,6 @@ HTML<!DOCTYPE html>
   
    function clearAllProofs() { if(confirm('למחוק את כל הזיכרונות והתמונות?')){state.proofs={};save();render();}}
   
-   let wheelOptions = [10,15,20,25,30,40,50,100];
-  
-   // ====================== סיום ======================
    render();
 </script>
 </body>
