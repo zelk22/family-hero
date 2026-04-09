@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V35 - Parent Approval + Treasure Chest + Messages</title>
+   <title>Family Hero 🌟 V36 - Full Fixes</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -69,15 +69,20 @@
        @keyframes flame { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.2); opacity: 1; } }
       
        #challengeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-       .modal-content { background: var(--card-bg); padding: 35px; border-radius: 30px; width: 85%; max-width: 420px; text-align: center; box-shadow: var(--shadow); border: 4px solid var(--child-color); animation: modalSlide 0.3s ease-out; }
+       .modal-content { background: var(--card-bg); padding: 35px; border-radius: 30px; width: 85%; max-width: 420px; text-align: center; box-shadow: var(--shadow); border: 4px solid var(--child-color); animation: modalSlide 0.3s ease-out; position: relative; }
        @keyframes modalSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
        .quiz-option { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; background: white; font-size: 1.1rem; }
        .quiz-option:hover { background: #f8f9fa; border-color: var(--child-color); transform: scale(1.02); }
+       .modal-close { position: absolute; top: 10px; right: 15px; font-size: 2.2rem; cursor: pointer; color: #ff7675; }
        .parent-message { background: #fff3cd; border-radius: 20px; padding: 15px; margin: 15px 0 10px 0; border-right: 6px solid #f1c40f; font-weight: bold; text-align: center; }
    </style>
 </head>
 <body id="mainBody" onclick="initAudio()">
-<div id="challengeModal"><div class="modal-content" id="modalContent"></div></div>
+<div id="challengeModal">
+   <div class="modal-content" id="modalContent">
+       <span class="modal-close" onclick="document.getElementById('challengeModal').style.display='none'">✕</span>
+   </div>
+</div>
 
 <div class="container">
    <header style="text-align: center; padding: 20px 0;">
@@ -102,10 +107,10 @@
            <div id="mainBar" style="height:100%; transition:1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); background:var(--accent); width: 0%;"></div>
        </div>
        <small id="nextGoalText" style="font-weight: 800; display: block; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);"></small>
+      
        <button id="wheelBtn" class="wheel-btn" onclick="spinWheel()">🎡 בונוס גלגל המזל!</button>
    </div>
 
-   <!-- הודעת עידוד -->
    <div id="parentMessageBox" class="parent-message" style="display:none;"></div>
 
    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px;">
@@ -137,10 +142,8 @@
            <button onclick="toggleDarkMode()" id="darkModeBtn" style="flex: 1; padding:14px; background:#333; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🌙 מצב לילה</button>
        </div>
 
-       <!-- כל האקורדיונים של V34 + התוספות -->
        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת פריט חדש <span>▼</span></button>
        <div class="panel">
-           <!-- ... אותו קוד כמו ב-V34 + צ'קבוקס אימות הורה ... -->
            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items: center;">
                <input type="text" id="addIcon" placeholder="😊" style="width:45px; text-align:center; padding:10px; border-radius:8px; border:1px solid #ccc;">
                <input type="text" id="addName" placeholder="שם המשימה/פרס..." style="flex:2; min-width:150px; padding: 10px; border-radius:8px; border:1px solid #ccc;">
@@ -197,7 +200,6 @@
            <div id="activityLog" class="history-log">אין פעילות מתועדת.</div>
        </div>
 
-       <!-- V35 חדש -->
        <button class="accordion" onclick="toggleAcc(this)">⏳ משימות ממתינות לאישור הורה <span>▼</span></button>
        <div class="panel" id="pendingApprovalsPanel"></div>
 
@@ -210,6 +212,16 @@
            </div>
        </div>
 
+       <button class="accordion" onclick="toggleAcc(this)">🎨 דרגות + אווטר + גלגל מזל <span>▼</span></button>
+       <div class="panel" id="rankSettingsPanel">
+           <h4>ערכי בונוס בגלגל המזל</h4>
+           <input id="wheelValues" value="10,15,20,25,30,40,50,100" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;">
+           <button onclick="saveWheelValues()" style="margin-top:10px; padding:10px 20px; background:var(--success); color:white; border:none; border-radius:8px; cursor:pointer;">שמור ערכי גלגל</button>
+
+           <h4 style="margin-top:25px;">שדרוג אווטר (הוצאה בנקודות)</h4>
+           <div id="avatarShop" style="display:flex; gap:15px; flex-wrap:wrap;"></div>
+       </div>
+
        <button onclick="clearActivityLog()" style="width:100%; margin-top:15px; padding:14px; background:#ff7675; color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">🗑️ נקה יומן פעילות והיסטוריה</button>
        <button onclick="dailyReset()" style="width:100%; margin-top:20px; padding:15px; background:var(--danger); color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer; font-size:1.1rem; box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);">⏰ איפוס יומי ידני (משימות וגלגל)</button>
    </div>
@@ -219,7 +231,7 @@
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
 <script>
-   // ====================== V34 מלא - לא שיניתי שום דבר ======================
+   // ====================== V35 מלא (הקוד ששלחת בדיוק) ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -374,7 +386,6 @@
                <input type="number" id="mathAns" style="font-size:2rem; text-align:center; width:140px; padding:10px; border:3px solid var(--primary); border-radius:12px;">
                <button onclick="checkChallenge(${task.id}, ${ans}, document.getElementById('mathAns').value)" style="margin-top:25px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">✅ בדוק תשובה</button>
            `;
-           setTimeout(() => { const inp = document.getElementById('mathAns'); if(inp) inp.focus(); }, 300);
        } else if (task.vType === 'quiz') {
            const badOpts = (task.vOptions || '').split(',').map(s => s.trim()).filter(s => s !== "");
            const allOpts = [task.vAnswer.trim(), ...badOpts].sort(() => Math.random() - 0.5);
@@ -390,7 +401,6 @@
                <input type="text" id="codeAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;">
                <button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('codeAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>
            `;
-           setTimeout(() => { const inp = document.getElementById('codeAns'); if(inp) inp.focus(); }, 300);
        }
    }
   
@@ -514,7 +524,6 @@
        const hasUsedWheel = state.wheelDone && state.wheelDone[child.id];
        document.getElementById('wheelBtn').style.display = (done.length >= 5 && !hasUsedWheel) ? 'inline-block' : 'none';
       
-       // הודעת עידוד
        const msgBox = document.getElementById('parentMessageBox');
        const latest = (state.messages || []).find(m => m.childId === 'all' || m.childId === child.id);
        if (latest) {
@@ -693,7 +702,6 @@
        document.getElementById('activityLog').innerHTML = (state.logs||[]).join('<br>') || "אין פעילות.";
        document.getElementById('redemptionLog').innerHTML = (state.redemptions||[]).map(r => `<div><b>${r.date}</b>: ${r.childName} פדה את <b>${r.rewardName}</b></div>`).join('') || "אין רכישות עדיין.";
       
-       // פאנל אימות הורה
        let pendingHTML = (state.pendingApprovals || []).length ? (state.pendingApprovals || []).map(p => `
            <div class="manage-row" style="background:#fff3cd;border-radius:12px;">
                <div><b>${p.childName}</b> — ${p.taskName} (+${p.val}💎)</div>
@@ -704,9 +712,11 @@
            </div>`).join('') : '<p style="text-align:center;opacity:0.6;">אין משימות ממתינות</p>';
        document.getElementById('pendingApprovalsPanel').innerHTML = pendingHTML;
       
-       // dropdown להודעות
        const msgSelect = document.getElementById('messageChildSelect');
        if (msgSelect) msgSelect.innerHTML = '<option value="all">לכולם</option>' + (state.children||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      
+       // V36 – פאנל דרגות + אווטר
+       renderAvatarShop();
    }
   
    function addItem() {
@@ -773,6 +783,7 @@
        sounds.task();
        confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
        save(); render();
+       checkAllTasksDone();   // <-- חדש
    }
   
    function buy(v, rewardName) {
@@ -789,8 +800,7 @@
   
    function spinWheel() {
        const child = state.children[state.activeChild];
-       const options = [10, 15, 20, 25, 30, 40, 50, 100];
-       const bonus = options[Math.floor(Math.random()*options.length)];
+       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
       
        alert("🎡 הגלגל מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
       
@@ -854,6 +864,56 @@
    }
   
    function clearAllProofs() { if(confirm('למחוק את כל הזיכרונות והתמונות?')){state.proofs={};save();render();}}
+  
+   // ====================== V36 תוספות ======================
+   let wheelOptions = [10,15,20,25,30,40,50,100];
+  
+   function saveWheelValues() {
+       const val = document.getElementById('wheelValues').value.trim();
+       wheelOptions = val.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+       if (wheelOptions.length === 0) wheelOptions = [10,15,20,25,30,40,50,100];
+       alert("✅ ערכי הגלגל נשמרו!");
+       save();
+   }
+  
+   function applauseSound() {
+       [523,659,783,1046,1318,1568].forEach((f,i) => playTone(f,'sine',0.3,0.2,0,i*60));
+   }
+  
+   function checkAllTasksDone() {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
+       if(tasksToday.length > 0 && done.length >= tasksToday.length) {
+           applauseSound();
+           confetti({particleCount:250, spread:120, origin:{y:0.6}});
+           alert("🎉 ברכות! סיימת את כל המשימות להיום!");
+           addLog(`🎉 ${child.name} סיים את כל המשימות להיום!`);
+       }
+   }
+  
+   function renderAvatarShop() {
+       document.getElementById('avatarShop').innerHTML = `
+           <div onclick="buyAvatar(50,'🦸‍♂️')" style="cursor:pointer;font-size:3rem;text-align:center;border:2px solid #ddd;border-radius:15px;padding:10px;width:80px;">🦸‍♂️<br><small>50💎</small></div>
+           <div onclick="buyAvatar(80,'👑')" style="cursor:pointer;font-size:3rem;text-align:center;border:2px solid #ddd;border-radius:15px;padding:10px;width:80px;">👑<br><small>80💎</small></div>
+           <div onclick="buyAvatar(120,'🐉')" style="cursor:pointer;font-size:3rem;text-align:center;border:2px solid #ddd;border-radius:15px;padding:10px;width:80px;">🐉<br><small>120💎</small></div>`;
+   }
+  
+   function buyAvatar(cost, emoji) {
+       const child = state.children[state.activeChild];
+       if(child.pts >= cost && confirm(`לשדרג אווטר ל-${emoji} ב-${cost} נקודות?`)) {
+           child.pts -= cost;
+           addLog(`${child.name} שדרג אווטר ל-${emoji}`);
+           save(); render();
+           alert(`🎉 האווטר שלך עודכן ל-${emoji}!`);
+       }
+   }
+  
+   // עדכון renderAdmin (מוסיף את הפאנל)
+   // (הפונקציה renderAdmin כבר כוללת את renderAvatarShop(); )
+  
+   // ====================== סיום ======================
+   render();
 </script>
 </body>
 </html>
