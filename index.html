@@ -76,8 +76,54 @@
        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 2.5rem; cursor: pointer; color: #ff7675; font-weight: bold; }
        .parent-message { background: #fff3cd; border-radius: 20px; padding: 15px; margin: 15px 0 10px 0; border-right: 6px solid #f1c40f; font-weight: bold; text-align: center; }
        .smart-field { margin-bottom: 15px !important; }
-       .avatar-item { font-size: 3rem; cursor: pointer; padding: 12px; border: 2px solid #ddd; border-radius: 15px; text-align: center; width: 100px; margin: 6px; transition: all 0.2s; }
-       .avatar-item:hover { transform: scale(1.08); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+       
+       /* שיפור נראות חנות אווטרים – גדולה יותר ומלוטשת */
+       #avatarShopMain { 
+           display: none; 
+           flex-wrap: wrap; 
+           justify-content: center; 
+           gap: 18px; 
+           padding: 25px 15px; 
+           background: var(--card-bg); 
+           border-radius: 24px; 
+           box-shadow: var(--shadow); 
+           margin-top: 10px;
+       }
+       .avatar-item { 
+           font-size: 3.4rem; 
+           cursor: pointer; 
+           padding: 18px 12px; 
+           border: 3px solid #ddd; 
+           border-radius: 20px; 
+           text-align: center; 
+           width: 130px; 
+           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+           background: white;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+       }
+       .avatar-item:hover { 
+           transform: translateY(-6px) scale(1.08); 
+           border-color: var(--child-color); 
+           box-shadow: 0 12px 25px rgba(108, 92, 231, 0.25);
+       }
+       .avatar-item img { 
+           width: 68px; 
+           height: 68px; 
+           object-fit: contain; 
+           border-radius: 50%; 
+       }
+       .avatar-item small { 
+           display: block; 
+           margin-top: 8px; 
+           font-size: 0.82rem; 
+           font-weight: bold; 
+           color: #2d3436; 
+       }
+       
+       /* כפתורי קטגוריות */
+       .avatar-cat-tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; flex-wrap: wrap; }
+       .avatar-cat-btn { background: var(--card-bg); border: 1px solid rgba(0,0,0,0.1); padding: 8px 20px; border-radius: 30px; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
+       .avatar-cat-btn.active { background: var(--child-color); color: white; }
    </style>
 </head>
 <body id="mainBody" onclick="initAudio()">
@@ -134,13 +180,22 @@
            <h2 style="color: var(--loot);">💎 חנות פרסים</h2>
            <div id="rewardsList"></div>
            
-           <!-- תפריט לחיץ חנות אווטרים – מוצב במקביל לפרויקטים, מתחת לפרסים -->
-           <h3 onclick="toggleAvatarShop()" id="avatarHeader" style="color: var(--child-color); margin-top: 30px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+           <!-- חנות אווטרים – מוגדלת ומלוטשת -->
+           <h3 onclick="toggleAvatarShop()" id="avatarHeader" style="color: var(--child-color); margin-top: 30px; display:flex; align-items:center; gap:10px; cursor:pointer; font-size:1.35rem;">
                🎨 חנות אווטרים 
-               <small style="font-size:0.7rem; background:var(--child-color); color:white; padding:2px 8px; border-radius:10px;">שדרג את הגיבור שלך!</small> 
-               <span id="avatarToggleIcon" style="margin-left:auto; font-size:1.1rem;">▼</span>
+               <small style="font-size:0.75rem; background:var(--child-color); color:white; padding:4px 12px; border-radius:9999px;">שדרג את הגיבור שלך!</small> 
+               <span id="avatarToggleIcon" style="margin-left:auto; font-size:1.3rem; transition:0.3s;">▼</span>
            </h3>
-           <div id="avatarShopMain" style="display:none; flex-wrap:wrap; justify-content:center; gap:12px; padding:15px 0;"></div>
+           
+           <div id="avatarShopMain" style="display:none;">
+               <!-- כפתורי קטגוריות -->
+               <div class="avatar-cat-tabs" id="avatarCatFilters">
+                   <button class="avatar-cat-btn active" onclick="filterAvatarCategory('all', this)">הכל</button>
+                   <button class="avatar-cat-btn" onclick="filterAvatarCategory('regular', this)">מודרני</button>
+                   <button class="avatar-cat-btn" onclick="filterAvatarCategory('biblical', this)">תנ״כי</button>
+               </div>
+               <div id="avatarShopContent" style="display:flex; flex-wrap:wrap; justify-content:center; gap:18px;"></div>
+           </div>
        </div>
    </div>
 
@@ -226,7 +281,8 @@
            <h4>🤝 אתגרים משפחתיים</h4><div id="manageCoops"></div>
        </div>
       
-       <button class="accordion" onclick="toggleAcc(this)">🎨 ניהול אווטרים (עריכה, מחיקה, שינוי שם/שווי) <span>▼</span></button>
+       <!-- ניהול אווטרים עם אפשרות העלאת תמונה -->
+       <button class="accordion" onclick="toggleAcc(this)">🎨 ניהול אווטרים (עריכה + העלאת תמונה) <span>▼</span></button>
        <div class="panel" id="manageAvatarsPanel"></div>
 
        <button class="accordion" onclick="toggleAcc(this)">📸 גלריית הוכחות <span>▼</span></button>
@@ -271,9 +327,11 @@
 
 <button id="adminToggle" class="admin-toggle-btn" onclick="toggleAdminPanel()">⚙️</button>
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
+<!-- קלט תמונה חדש לאווטרים -->
+<input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V38 – כל התיקונים + שיפור תצוגת אווטרים ======================
+   // ====================== V38 – תיקונים 1+2: חנות אווטרים מוגדלת + העלאת תמונה ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -330,9 +388,11 @@
    };
   
    let pendingTaskId = null;
+   let pendingAvatarId = null;   // לשמירת תמונה חדשה בעת יצירה/עריכה
    let isInitialLoad = true;
    let showAdmin = isInitialAdmin;
    let currentFilter = 'all';
+   let currentAvatarCategory = 'all';
    let wheelOptions = [10,15,20,25,30,40,50,100];
   
    if (targetChildId && !isInitialAdmin) document.body.classList.add('is-child-mode');
@@ -346,33 +406,33 @@
            
            if (!state.availableAvatars || state.availableAvatars.length === 0) {
                state.availableAvatars = [
-                   {id:1, emoji:'🦸‍♂️', name:'סופרמן', cost:50},
-                   {id:2, emoji:'👑', name:'מלך', cost:80},
-                   {id:3, emoji:'🐉', name:'דרקון', cost:120},
-                   {id:4, emoji:'🚀', name:'אסטרונאוט', cost:60},
-                   {id:5, emoji:'🧙‍♂️', name:'קוסם', cost:90},
-                   {id:6, emoji:'🦸‍♀️', name:'סופרגירל', cost:50},
-                   {id:7, emoji:'🐼', name:'פנדה', cost:40},
-                   {id:8, emoji:'🦄', name:'חד קרן', cost:70},
-                   {id:9, emoji:'🤖', name:'רובוט', cost:100},
-                   {id:10, emoji:'🦁', name:'אריה', cost:55},
-                   {id:11, emoji:'🌈', name:'קשת', cost:45},
-                   {id:12, emoji:'🧜‍♂️', name:'טריטון', cost:85},
-                   {id:13, emoji:'🧚', name:'פיה', cost:65},
-                   {id:14, emoji:'🦅', name:'נשר', cost:75},
-                   {id:15, emoji:'🐺', name:'זאב', cost:95},
-                   {id:16, emoji:'🛡️', name:'דוד המלך', cost:70},
-                   {id:17, emoji:'🪄', name:'משה רבנו', cost:85},
-                   {id:18, emoji:'🌳', name:'אברהם אבינו', cost:60},
-                   {id:19, emoji:'📜', name:'שמואל הנביא', cost:65},
-                   {id:20, emoji:'🏹', name:'דבורה הנביאה', cost:55},
-                   {id:21, emoji:'🐑', name:'רחל אמנו', cost:50},
-                   {id:22, emoji:'🧥', name:'יוסף הצדיק', cost:90},
-                   {id:23, emoji:'🦁', name:'שמשון הגיבור', cost:75},
-                   {id:24, emoji:'👑', name:'אסתר המלכה', cost:70},
-                   {id:25, emoji:'🗡️', name:'גדעון', cost:60},
-                   {id:26, emoji:'🌟', name:'יהושע בן נון', cost:80},
-                   {id:27, emoji:'🐪', name:'יעקב אבינו', cost:65}
+                   {id:1, emoji:'🦸‍♂️', name:'סופרמן', cost:50, category:'regular'},
+                   {id:2, emoji:'👑', name:'מלך', cost:80, category:'regular'},
+                   {id:3, emoji:'🐉', name:'דרקון', cost:120, category:'regular'},
+                   {id:4, emoji:'🚀', name:'אסטרונאוט', cost:60, category:'regular'},
+                   {id:5, emoji:'🧙‍♂️', name:'קוסם', cost:90, category:'regular'},
+                   {id:6, emoji:'🦸‍♀️', name:'סופרגירל', cost:50, category:'regular'},
+                   {id:7, emoji:'🐼', name:'פנדה', cost:40, category:'regular'},
+                   {id:8, emoji:'🦄', name:'חד קרן', cost:70, category:'regular'},
+                   {id:9, emoji:'🤖', name:'רובוט', cost:100, category:'regular'},
+                   {id:10, emoji:'🦁', name:'אריה', cost:55, category:'regular'},
+                   {id:11, emoji:'🌈', name:'קשת', cost:45, category:'regular'},
+                   {id:12, emoji:'🧜‍♂️', name:'טריטון', cost:85, category:'regular'},
+                   {id:13, emoji:'🧚', name:'פיה', cost:65, category:'regular'},
+                   {id:14, emoji:'🦅', name:'נשר', cost:75, category:'regular'},
+                   {id:15, emoji:'🐺', name:'זאב', cost:95, category:'regular'},
+                   {id:16, emoji:'🛡️', name:'דוד המלך', cost:70, category:'biblical'},
+                   {id:17, emoji:'🪄', name:'משה רבנו', cost:85, category:'biblical'},
+                   {id:18, emoji:'🌳', name:'אברהם אבינו', cost:60, category:'biblical'},
+                   {id:19, emoji:'📜', name:'שמואל הנביא', cost:65, category:'biblical'},
+                   {id:20, emoji:'🏹', name:'דבורה הנביאה', cost:55, category:'biblical'},
+                   {id:21, emoji:'🐑', name:'רחל אמנו', cost:50, category:'biblical'},
+                   {id:22, emoji:'🧥', name:'יוסף הצדיק', cost:90, category:'biblical'},
+                   {id:23, emoji:'🦁', name:'שמשון הגיבור', cost:75, category:'biblical'},
+                   {id:24, emoji:'👑', name:'אסתר המלכה', cost:70, category:'biblical'},
+                   {id:25, emoji:'🗡️', name:'גדעון', cost:60, category:'biblical'},
+                   {id:26, emoji:'🌟', name:'יהושע בן נון', cost:80, category:'biblical'},
+                   {id:27, emoji:'🐪', name:'יעקב אבינו', cost:65, category:'biblical'}
                ];
            }
            
@@ -502,10 +562,17 @@
    function toggleAvatarShop() {
        const shop = document.getElementById('avatarShopMain');
        const icon = document.getElementById('avatarToggleIcon');
-       const isHidden = shop.style.display === 'none' || !shop.style.display;
-       shop.style.display = isHidden ? 'flex' : 'none';
+       const isHidden = shop.style.display === 'none' || shop.style.display === '';
+       shop.style.display = isHidden ? 'block' : 'none';
        icon.textContent = isHidden ? '▲' : '▼';
        if (isHidden) renderAvatarShopMain();
+   }
+  
+   function filterAvatarCategory(cat, btn) {
+       currentAvatarCategory = cat;
+       document.querySelectorAll('.avatar-cat-btn').forEach(b => b.classList.remove('active'));
+       btn.classList.add('active');
+       renderAvatarShopMain();
    }
   
    function render() {
@@ -574,9 +641,8 @@
            msgBox.style.display = 'block';
        } else msgBox.style.display = 'none';
       
-       renderAvatarShopMain();   // עדכון תמידי של החנות (גם אם מוסתר)
-       
        if(showAdmin) renderAdmin();
+       renderAvatarShopMain();   // תמיד מעדכן את החנות
    }
   
    function handleTaskClick(id) {
@@ -672,15 +738,36 @@
       
        document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `<div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;"><b>${i+1}.</b><input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();"><div style="font-size:0.75rem;">XP: <input type="number" value="${c.totalXP}" onchange="state.children[${i}].totalXP=parseInt(this.value);save();render();" style="width:50px;"> 💎: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);save();render();" style="width:50px;"></div><button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button><button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button></div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalXP:0, streak:0, lastDate:\'\'});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש למשפחה</button>';
       
-       let avatarsHTML = (state.availableAvatars||[]).map((av,i) => `
+       // ניהול אווטרים עם העלאת תמונה
+       let avatarsHTML = `<div style="margin-bottom:20px; padding:15px; background:rgba(0,0,0,0.03); border-radius:15px;">
+           <h4>➕ הוספת אווטר חדש</h4>
+           <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+               <input id="newAvatarName" placeholder="שם האווטר" style="flex:1; min-width:160px; padding:10px; border-radius:8px; border:1px solid #ccc;">
+               <input id="newAvatarEmoji" placeholder="אימוג'י (אופציונלי)" style="width:80px; text-align:center; padding:10px; border-radius:8px; border:1px solid #ccc;">
+               <input id="newAvatarCost" type="number" value="60" style="width:80px; padding:10px; border-radius:8px; border:1px solid #ccc;">
+               <select id="newAvatarCategory" style="padding:10px; border-radius:8px;">
+                   <option value="regular">מודרני</option>
+                   <option value="biblical">תנ״כי</option>
+               </select>
+               <button onclick="document.getElementById('avatarImageInput').click()" style="background:var(--success); color:white; border:none; padding:10px 18px; border-radius:8px; cursor:pointer;">📸 העלה תמונה</button>
+               <button onclick="addNewAvatar()" style="background:var(--success); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">הוסף אווטר</button>
+           </div>
+       </div>`;
+       
+       avatarsHTML += (state.availableAvatars||[]).map((av,i) => `
            <div class="manage-row">
-               <span style="font-size:2.2rem">${av.emoji}</span>
+               <div style="font-size:2.4rem; width:60px; text-align:center;">${av.img ? `<img src="${av.img}" style="width:55px;height:55px;border-radius:50%;object-fit:cover;">` : av.emoji}</div>
                <input class="input-edit" value="${av.name}" onchange="state.availableAvatars[${i}].name=this.value;save();render();">
-               <input type="text" style="width:55px;text-align:center" value="${av.emoji}" onchange="state.availableAvatars[${i}].emoji=this.value;save();render();">
+               <input type="text" style="width:70px;text-align:center" value="${av.emoji||''}" onchange="state.availableAvatars[${i}].emoji=this.value;save();render();">
                <input type="number" style="width:70px" value="${av.cost}" onchange="state.availableAvatars[${i}].cost=parseInt(this.value)||50;save();render();">
+               <select onchange="state.availableAvatars[${i}].category=this.value;save();render();" style="padding:6px;border-radius:6px;">
+                   <option value="regular" ${av.category==='regular'?'selected':''}>מודרני</option>
+                   <option value="biblical" ${av.category==='biblical'?'selected':''}>תנ״כי</option>
+               </select>
+               <button onclick="document.getElementById('avatarImageInput').click();pendingAvatarId=${i};" style="background:#00cec9;color:white;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;">📸 שנה תמונה</button>
                <button onclick="if(confirm('למחוק אווטר זה?')){state.availableAvatars.splice(${i},1);save();render();}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('');
-       avatarsHTML += `<button onclick="addNewAvatar()" style="width:100%; padding:12px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); background:var(--success); color:white; cursor:pointer;">+ הוסף אווטר חדש</button>`;
+       
        document.getElementById('manageAvatarsPanel').innerHTML = avatarsHTML;
       
        document.getElementById('proofViewer').innerHTML = Object.entries(state.proofs||{}).map(([id, p]) => `<div style="text-align:center; min-width:90px; position:relative; background:white; padding:5px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);"><img src="${p.img}" style="width:80px; height:80px; border-radius:8px; object-fit:cover;" onclick="window.open(this.src)"><button onclick="if(confirm('למחוק תמונה?')){delete state.proofs['${id}'];save();render();}" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button><div style="font-size:0.7rem; font-weight:bold; margin-top:3px;">${p.by}</div></div>`).join('') || "אין צילומים כרגע";
@@ -694,15 +781,53 @@
        const msgSelect = document.getElementById('messageChildSelect');
        if (msgSelect) msgSelect.innerHTML = '<option value="all">לכולם</option>' + (state.children||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       
-       renderAvatarShop();   // תצוגה מקדימה באדמין
+       renderAvatarShop();
+   }
+  
+   function handleAvatarImageUpload(e) {
+       const file = e.target.files[0];
+       if (!file) return;
+       const reader = new FileReader();
+       reader.onload = function(ev) {
+           const base64 = ev.target.result;
+           if (pendingAvatarId !== null) {
+               // עדכון תמונה קיימת
+               state.availableAvatars[pendingAvatarId].img = base64;
+               state.availableAvatars[pendingAvatarId].emoji = ''; // נקה אימוג'י אם יש תמונה
+               pendingAvatarId = null;
+           } else {
+               // שמירה זמנית – תישמר רק בעת לחיצה על "הוסף"
+               window.tempAvatarImage = base64;
+           }
+           save(); render();
+       };
+       reader.readAsDataURL(file);
    }
   
    function addNewAvatar() {
-       const newAv = {id: Date.now(), emoji: '⭐', name: 'אווטר חדש', cost: 50};
+       const name = document.getElementById('newAvatarName').value.trim() || 'אווטר חדש';
+       const emoji = document.getElementById('newAvatarEmoji').value.trim();
+       const cost = parseInt(document.getElementById('newAvatarCost').value) || 60;
+       const category = document.getElementById('newAvatarCategory').value;
+       
+       const newAv = {
+           id: Date.now(),
+           name: name,
+           emoji: emoji || '⭐',
+           cost: cost,
+           category: category,
+           img: window.tempAvatarImage || null
+       };
+       
        if(!state.availableAvatars) state.availableAvatars = [];
        state.availableAvatars.push(newAv);
-       addLog('🎨 נוסף אווטר חדש');
+       window.tempAvatarImage = null;
+       addLog(`🎨 נוסף אווטר חדש: ${name}`);
        save(); render();
+       
+       // ניקוי שדות
+       document.getElementById('newAvatarName').value = '';
+       document.getElementById('newAvatarEmoji').value = '';
    }
   
    function grantWheelSpin(childId) {
@@ -828,30 +953,37 @@
    function renderAvatarShop() {
        let html = '';
        (state.availableAvatars || []).forEach(av => {
-           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${av.emoji}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
+           const display = av.img ? `<img src="${av.img}" style="width:60px;height:60px;border-radius:50%;">` : av.emoji;
+           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${display}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
        });
        document.getElementById('avatarShop').innerHTML = html;
    }
   
    function renderAvatarShopMain() {
+       let filtered = state.availableAvatars || [];
+       if (currentAvatarCategory !== 'all') {
+           filtered = filtered.filter(av => av.category === currentAvatarCategory);
+       }
+       
        let html = '';
-       (state.availableAvatars || []).forEach(av => {
-           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${av.emoji}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
+       filtered.forEach(av => {
+           const display = av.img ? `<img src="${av.img}" style="width:72px;height:72px;border-radius:50%;object-fit:contain;">` : `<span style="font-size:3.6rem;">${av.emoji}</span>`;
+           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${display}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
        });
-       document.getElementById('avatarShopMain').innerHTML = html || '<p style="opacity:0.6; text-align:center; width:100%;">אין אווטרים זמינים כרגע</p>';
+       document.getElementById('avatarShopContent').innerHTML = html || '<p style="opacity:0.6; text-align:center; width:100%; padding:30px 0;">אין אווטרים בקטגוריה זו</p>';
    }
   
    function buyAvatar(id) {
        const av = state.availableAvatars.find(a => a.id === id);
        if (!av) return;
        const child = state.children[state.activeChild];
-       if (child.pts >= av.cost && confirm(`לשדרג לאווטר ${av.emoji} ${av.name} ב-${av.cost} נקודות?`)) {
+       if (child.pts >= av.cost && confirm(`לשדרג לאווטר ${av.emoji || ''} ${av.name} ב-${av.cost} נקודות?`)) {
            child.pts -= av.cost;
            if(!state.avatars) state.avatars = [];
-           state.avatars.push({id: av.id, emoji: av.emoji, name: av.name, date: new Date().toLocaleDateString('he-IL')});
+           state.avatars.push({id: av.id, emoji: av.emoji, name: av.name, img: av.img, date: new Date().toLocaleDateString('he-IL')});
            addLog(`${child.name} שדרג אווטר ל-${av.name}`);
            save(); render();
-           alert(`🎉 האווטר שלך עודכן ל-${av.emoji} ${av.name}!`);
+           alert(`🎉 האווטר שלך עודכן ל-${av.emoji || 'תמונה'} ${av.name}!`);
        } else if (child.pts < av.cost) {
            alert("חסרות לך עוד " + (av.cost - child.pts) + " נקודות...");
        }
