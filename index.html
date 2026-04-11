@@ -276,7 +276,11 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   const emojiSet = { task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'], reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩'] };
+   // ====================== V38 FULL - 1087 שורות ======================
+   const emojiSet = {
+       task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
+       reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
+   };
    let audioCtx;
    function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
    function playTone(f, type, dur, vol, slide=0, delay=0) {
@@ -299,7 +303,11 @@
        levelUp: () => { [261, 329, 392, 523, 659, 783].forEach((f,i) => playTone(f, 'square', 0.5, 0.02, 0, i*100)); }
    };
   
-   const firebaseConfig = { apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw", authDomain: "family-hero-3a3fd.firebaseapp.com", projectId: "family-hero-3a3fd" };
+   const firebaseConfig = {
+       apiKey: "AIzaSyD-JrKHwexfIk-fPPvpMcxGSvXwYp9OUkw",
+       authDomain: "family-hero-3a3fd.firebaseapp.com",
+       projectId: "family-hero-3a3fd"
+   };
    firebase.initializeApp(firebaseConfig);
    const db = firebase.firestore();
    const docRef = db.collection("data").doc("v28_smart_full");
@@ -539,7 +547,10 @@
            }).join('');
       
        document.getElementById('rewardsList').innerHTML = (state.rewards||[]).filter(filterByOwner).map(r => `
-           <div class="list-item"><div><span style="font-size:1.5rem; margin-left:10px;">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div><button onclick="buy(${r.val}, '${r.name}')" style="background:var(--loot); border:none; padding:10px 20px; border-radius:15px; font-weight:bold; color:#2d3436; cursor:pointer; box-shadow:0 4px 0 #d4ac0d;">פדה</button></div>`).join('');
+           <div class="list-item">
+               <div><span style="font-size:1.5rem; margin-left:10px;">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div>
+               <button onclick="buyReward(${r.id})" style="background:var(--loot); border:none; padding:10px 20px; border-radius:15px; font-weight:bold; color:#2d3436; cursor:pointer; box-shadow:0 4px 0 #d4ac0d;">פדה</button>
+           </div>`).join('');
       
        document.getElementById('questsList').innerHTML = (state.quests||[]).filter(filterByOwner).map(q => `
            <div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.icon||'🔥'} ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div><div style="width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:5px; margin:8px 0; overflow:hidden;"><div style="width:${Math.min(((q.current||0)/q.steps)*100, 100)}%; height:100%; background:var(--special); border-radius:5px; transition:0.5s;"></div></div><button class="project-btn" onclick="advQuest(${q.id}, '${q.name}')">דיווח התקדמות +1</button></div>`).join('');
@@ -577,6 +588,27 @@
       
        if(showAdmin) renderAdmin();
        renderAvatarShopMain();
+   }
+  
+   function buyReward(rewardId) {
+       const reward = state.rewards.find(r => r.id === rewardId);
+       if (!reward) return alert("פרס לא נמצא");
+       
+       const child = state.children[state.activeChild];
+       if (child.pts >= reward.val) {
+           if (confirm(`לפדות את ${reward.name} ב-${reward.val} 💎?`)) {
+               child.pts -= reward.val;
+               addLog(`${child.name} פדה פרס: ${reward.name}`);
+               addRedemption(child.name, reward.name);
+               sounds.reward();
+               confetti({ particleCount: 120, spread: 70 });
+               save();
+               render();
+               alert(`🎉 פדית את ${reward.name} בהצלחה!`);
+           }
+       } else {
+           alert(`חסרות לך עוד ${reward.val - child.pts} נקודות...`);
+       }
    }
   
    function handleTaskClick(id) {
