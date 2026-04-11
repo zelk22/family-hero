@@ -252,6 +252,7 @@
            <div id="redemptionLog" class="history-log" style="margin-bottom:15px; border-right:4px solid var(--loot);">אין רכישות עדיין.</div>
            <h4>🚀 פעילות כללית:</h4>
            <div id="activityLog" class="history-log">אין פעילות מתועדת.</div>
+           <button onclick="clearLogsOnly()" style="width:100%; margin-top:15px; padding:12px; background:#ff7675; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🗑️ מחק יומן פעילות (בלי איפוס נקודות)</button>
        </div>
 
        <button class="accordion" onclick="toggleAcc(this)">⏳ משימות ממתינות לאישור הורה <span>▼</span></button>
@@ -267,7 +268,6 @@
        </div>
 
        <button onclick="fullSystemReset()" style="width:100%; margin-top:15px; padding:14px; background:#ff7675; color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">🗑️ איפוס מלא של כל הנתונים</button>
-       <button onclick="dailyReset()" style="width:100%; margin-top:20px; padding:15px; background:var(--danger); color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer; font-size:1.1rem;">⏰ איפוס יומי</button>
    </div>
 </div>
 
@@ -319,7 +319,7 @@
   
    let state = {
        activeChild:0,
-       children:[{id:1, name:"ילד 1", pts:0, totalPts:0, streak:0, lastFullDate:""}],
+       children:[{id:1, name:"ילד 1", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true}],
        tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{},
        darkMode: null,
        logs: [],
@@ -392,6 +392,7 @@
                if(c.totalPts === undefined) c.totalPts = c.pts || 0;
                if(c.streak === undefined) c.streak = 0;
                if(c.lastFullDate === undefined) c.lastFullDate = "";
+               if(c.showAvatarShop === undefined) c.showAvatarShop = true;
            });
            if (isInitialLoad && targetChildId) {
                const idx = state.children.findIndex(c => c.id == targetChildId);
@@ -530,6 +531,8 @@
    }
   
    function toggleAvatarShop() {
+       const child = state.children[state.activeChild];
+       if (!child.showAvatarShop) return alert("חנות האווטרים מוסתרת עבורך על ידי ההורה.");
        const shop = document.getElementById('avatarShopMain');
        const icon = document.getElementById('avatarToggleIcon');
        const isHidden = shop.style.display === 'none' || !shop.style.display;
@@ -619,8 +622,15 @@
            msgBox.style.display = 'block';
        } else msgBox.style.display = 'none';
       
+       if (child.showAvatarShop) {
+           document.getElementById('avatarHeader').style.display = 'flex';
+       } else {
+           document.getElementById('avatarHeader').style.display = 'none';
+           document.getElementById('avatarShopMain').style.display = 'none';
+       }
+      
        if(showAdmin) renderAdmin();
-       renderAvatarShopMain();
+       if (child.showAvatarShop) renderAvatarShopMain();
    }
   
    function buyReward(rewardId) {
@@ -629,7 +639,7 @@
        
        const child = state.children[state.activeChild];
        if (child.pts >= reward.val) {
-           if (confirm(`לפדות את ${reward.name} ב-${reward.val} 💎?`)) {
+           if (confirm(`אתה עומד לפדות את ${reward.name} ב-${reward.val} 💎 – אתה בטוח?`)) {
                child.pts -= reward.val;
                addLog(`${child.name} פדה פרס: ${reward.name}`);
                if(!state.redemptions) state.redemptions = [];
@@ -764,7 +774,7 @@
    function renderAdmin() {
        const ownerSelect = (current, type, idx) => `<select style="font-size:0.75rem; padding:4px;" onchange="state.${type}[${idx}].owner=this.value;save();render();"><option value="all" ${current==='all'?'selected':''}>לכולם</option>${state.children.map(c=>`<option value="${c.id}" ${current==c.id?'selected':''}>${c.name}</option>`).join('')}</select>`;
       
-       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `<div class="manage-row"><span>${t.icon||'✨'}</span><input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()"><select onchange="state.tasks[${i}].category=this.value;save();render();" style="font-size:0.7rem;"><option value="" ${!t.category?'selected':''}>ללא קטגוריה</option><option value="בוקר" ${t.category=='בוקר'?'selected':''}>בוקר</option><option value="ערב" ${t.category=='ערב'?'selected':''}>ערב</option></select>${ownerSelect(t.owner, 'tasks', i)}<select onchange="state.tasks[${i}].vType=this.value;save();render();" style="font-size:0.7rem;"><option value="none" ${(!t.vType || t.vType==='none')?'selected':''}>ללא</option><option value="math" ${t.vType==='math'?'selected':''}>🧮 כפל</option><option value="quiz" ${t.vType==='quiz'?'selected':''}>📝 אמריקאי</option><option value="open" ${t.vType==='open'?'selected':''}>📝 פתוחה</option><option value="code" ${t.vType==='code'?'selected':''}>🔑 קוד</option></select><button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button><button style="background:${t.needsParentApproval?'#f1c40f':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsParentApproval=!state.tasks[${i}].needsParentApproval;save();render();">👤</button><input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()"><button onclick="if(confirm('למחוק?')){state.tasks.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('');
+       document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `<div class="manage-row"><span style="font-size:1.8rem;cursor:pointer;" onclick="this.innerHTML=prompt('אימוגי חדש:', '${t.icon||'✨'}')||'✨';state.tasks[${i}].icon=this.innerHTML;save();render();">${t.icon||'✨'}</span><input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()"><select onchange="state.tasks[${i}].category=this.value;save();render();" style="font-size:0.7rem;"><option value="" ${!t.category?'selected':''}>ללא קטגוריה</option><option value="בוקר" ${t.category=='בוקר'?'selected':''}>בוקר</option><option value="ערב" ${t.category=='ערב'?'selected':''}>ערב</option></select>${ownerSelect(t.owner, 'tasks', i)}<select onchange="state.tasks[${i}].vType=this.value;save();render();" style="font-size:0.7rem;"><option value="none" ${(!t.vType || t.vType==='none')?'selected':''}>ללא</option><option value="math" ${t.vType==='math'?'selected':''}>🧮 כפל</option><option value="quiz" ${t.vType==='quiz'?'selected':''}>📝 אמריקאי</option><option value="open" ${t.vType==='open'?'selected':''}>📝 פתוחה</option><option value="code" ${t.vType==='code'?'selected':''}>🔑 קוד</option></select><button style="background:${t.needsProof?'var(--primary)':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsProof=!state.tasks[${i}].needsProof;save();render();">📷</button><button style="background:${t.needsParentApproval?'#f1c40f':'#eee'}; border:none; border-radius:4px; cursor:pointer;" onclick="state.tasks[${i}].needsParentApproval=!state.tasks[${i}].needsParentApproval;save();render();">👤</button><input type="number" style="width:40px" value="${t.val}" onchange="state.tasks[${i}].val=parseInt(this.value);save()"><button onclick="if(confirm('למחוק?')){state.tasks.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('');
       
        document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `<div class="manage-row"><span>${r.icon||'🎁'}</span><input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">${ownerSelect(r.owner, 'rewards', i)}<input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()"><button onclick="if(confirm('למחוק?')){state.rewards.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('');
       
@@ -772,7 +782,7 @@
       
        document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `<div class="manage-row"><span>🤝</span><input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save();render();"><input type="number" style="width:80px" value="${c.goal||100}" onchange="state.coops[${i}].goal=parseInt(this.value)||100;save();render();"><button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
       
-       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `<div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;"><b>${i+1}.</b><input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();"><div style="font-size:0.75rem;">נקודות: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);state.children[${i}].totalPts=parseInt(this.value);save();render();" style="width:70px;"></div><button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button><button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button></div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastFullDate:\'\'});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
+       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `<div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;"><b>${i+1}.</b><input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();"><div style="font-size:0.75rem;">נקודות: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);state.children[${i}].totalPts=parseInt(this.value);save();render();" style="width:70px;"></div><label style="margin-left:10px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" ${c.showAvatarShop?'checked':''} onchange="state.children[${i}].showAvatarShop=this.checked;save();render();"> הצג חנות אווטרים</label><button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button><button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button></div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastFullDate:\'\', showAvatarShop:true});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
       
        let avatarsHTML = `<h4>➕ הוספת אווטר חדש</h4><div style="display:flex; gap:8px; flex-wrap:wrap;"><input id="newAvatarName" placeholder="שם" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarEmoji" placeholder="אימוג'י" style="width:70px;text-align:center;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarCost" type="number" value="60" style="width:80px;padding:10px;border-radius:8px;border:1px solid #ccc;"><select id="newAvatarCategory" style="padding:10px;border-radius:8px;"><option value="regular">מודרני</option><option value="biblical">תנ״כי</option></select><button onclick="document.getElementById('avatarImageInput').click()" style="background:#00cec9;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;">📸 תמונה</button><button onclick="addNewAvatar()" style="background:var(--success);color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">הוסף</button></div>`;
        
@@ -829,11 +839,15 @@
    }
   
    function grantWheelSpin(childId) {
-       if(!state.extraWheelSpins) state.extraWheelSpins = {};
-       state.extraWheelSpins[childId] = (state.extraWheelSpins[childId] || 0) + 1;
-       const childName = state.children.find(c => c.id === childId).name;
-       addLog(`🎡 הורה העניק גלגל מזל נוסף ל${childName}`);
-       save(); render();
+       const child = state.children.find(c => c.id === childId);
+       if (!child) return;
+       if (confirm(`להעניק צ'ופר גלגל מזל ל${child.name}?`)) {
+           if(!state.extraWheelSpins) state.extraWheelSpins = {};
+           state.extraWheelSpins[childId] = (state.extraWheelSpins[childId] || 0) + 1;
+           addLog(`🎡 הורה העניק גלגל מזל נוסף ל${child.name}`);
+           save(); render();
+           alert(`✅ צ'ופר גלגל מזל ניתן ל${child.name}!`);
+       }
    }
   
    function addItem() {
@@ -888,10 +902,10 @@
    }
   
    function fullSystemReset() {
-       if(confirm('איפוס מלא של כל הנתונים?\n(כל הנקודות, רצף, אווטרים, היסטוריה – הכל יימחק)')) {
+       if(confirm('אתה בטוח? כל הנתונים ימחקו לצמיתות!\n(נקודות, רצף, אווטרים, היסטוריה – הכל)')) {
            state = {
                activeChild: 0,
-               children: state.children.map(c => ({id: c.id, name: c.name, pts: 0, totalPts: 0, streak: 0, lastFullDate: ""})),
+               children: state.children.map(c => ({id: c.id, name: c.name, pts: 0, totalPts: 0, streak: 0, lastFullDate: "", showAvatarShop: true})),
                tasks: state.tasks,
                rewards: state.rewards,
                quests: state.quests,
@@ -914,14 +928,13 @@
        }
    }
   
-   function dailyReset() {
-       if(confirm('איפוס יומי – משימות + גלגל + רצף?')) {
-           state.dailyDone = {};
-           state.wheelDone = {};
-           state.allTasksDoneToday = {};
-           state.children.forEach(c => { c.streak = 0; });
-           addLog("איפוס יומי מלא");
+   function clearLogsOnly() {
+       if(confirm('למחוק את כל יומן הפעילות והרכישות?')) {
+           state.logs = [];
+           state.redemptions = [];
+           addLog("יומן הפעילות נמחק");
            save(); render();
+           alert('יומן הפעילות נמחק בהצלחה!');
        }
    }
   
@@ -969,6 +982,10 @@
    function advQuest(id, name) {
        const q = state.quests.find(x => x.id === id);
        if(!q) return;
+       if (q.current >= q.steps) {
+           alert(`הפרוייקט "${name}" כבר הושלם!`);
+           return;
+       }
        q.current = (q.current || 0) + 1;
        if(q.current >= q.steps) {
            const child = state.children[state.activeChild];
