@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V40 - Categories + Ranks</title>
+   <title>Family Hero 🌟 V41 - Fixed</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -277,7 +277,7 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V40 FULL - 1098 שורות ======================
+   // ====================== V41 FULL - 1102 שורות ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -447,7 +447,7 @@
        document.getElementById('activeNameDisplay').innerText = child.name;
        document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('he-IL',{weekday:'long',day:'numeric',month:'long'});
       
-       const rankInfo = getRank(child.totalPts || 0);
+       const rankInfo = getRank(child.pts || 0);
        document.getElementById('heroLevel').innerText = `דרגה: ${rankInfo.title}`;
        document.getElementById('heroStreak').innerHTML = `<span class="${child.streak > 0 ? 'streak-fire':''}">🔥 רצף: ${child.streak || 0}</span>`;
       
@@ -549,6 +549,8 @@
                <input class="input-edit" value="${r.name}" onchange="state.rewards[${i}].name=this.value;save()">
                ${ownerSelect(r.owner, 'rewards', i)}
                <input type="number" style="width:50px" value="${r.val}" onchange="state.rewards[${i}].val=parseInt(this.value);save()">
+               <button onclick="moveRewardUp(${i})" style="background:none;border:none;cursor:pointer;font-size:1.4rem;">↑</button>
+               <button onclick="moveRewardDown(${i})" style="background:none;border:none;cursor:pointer;font-size:1.4rem;">↓</button>
                <button onclick="if(confirm('למחוק?')){state.rewards.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('');
       
@@ -569,9 +571,8 @@
                <button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
       
-       // ====================== תצוגת דרגות לילדים ======================
        document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => {
-           const rank = getRank(c.totalPts || 0);
+           const rank = getRank(c.pts || 0);
            return `
            <div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;">
                 <b>${i+1}.</b>
@@ -579,7 +580,6 @@
                 <div style="font-size:0.75rem;">
                    נקודות: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);state.children[${i}].totalPts=parseInt(this.value);save();render();" style="width:70px;">
                    <span style="margin-left:15px; font-weight:bold; color:var(--primary);">דרגה: ${rank.title}</span>
-                   <span style="margin-left:10px;">XP: ${c.totalPts || 0}</span>
                 </div>
                 <label style="margin-left:10px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" ${c.showAvatarShop?'checked':''} onchange="state.children[${i}].showAvatarShop=this.checked;save();render();"> הצג חנות אווטרים</label>
                 <button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button>
@@ -587,7 +587,6 @@
            </div>`;
        }).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastFullDate:\'\', showAvatarShop:true});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
       
-       // שאר הפאנלים (גלריית הוכחות, יומן, אווטרים וכו') נשארים בדיוק כמו ב-V38
        let avatarsHTML = `<h4>➕ הוספת אווטר חדש</h4><div style="display:flex; gap:8px; flex-wrap:wrap;"><input id="newAvatarName" placeholder="שם" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarEmoji" placeholder="אימוג'י" style="width:70px;text-align:center;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarCost" type="number" value="60" style="width:80px;padding:10px;border-radius:8px;border:1px solid #ccc;"><select id="newAvatarCategory" style="padding:10px;border-radius:8px;"><option value="regular">מודרני</option><option value="biblical">תנ״כי</option></select><button onclick="document.getElementById('avatarImageInput').click()" style="background:#00cec9;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;">📸 תמונה</button><button onclick="addNewAvatar()" style="background:var(--success);color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">הוסף</button></div>`;
        
        avatarsHTML += (state.availableAvatars||[]).map((av,i) => `
@@ -626,6 +625,22 @@
        const temp = state.tasks[i];
        state.tasks[i] = state.tasks[i+1];
        state.tasks[i+1] = temp;
+       save(); render();
+   }
+  
+   function moveRewardUp(i) {
+       if (i <= 0) return;
+       const temp = state.rewards[i];
+       state.rewards[i] = state.rewards[i-1];
+       state.rewards[i-1] = temp;
+       save(); render();
+   }
+  
+   function moveRewardDown(i) {
+       if (i >= state.rewards.length - 1) return;
+       const temp = state.rewards[i];
+       state.rewards[i] = state.rewards[i+1];
+       state.rewards[i+1] = temp;
        save(); render();
    }
   
@@ -925,16 +940,10 @@
        const child = state.children[state.activeChild];
        if(!state.dailyDone[child.id]) state.dailyDone[child.id]=[];
        
-       const oldRank = getRank(child.totalPts || 0).title;
-       
        state.dailyDone[child.id].push(id);
        child.pts += val;
        child.totalPts += val;
        
-       if(getRank(child.totalPts).title !== oldRank) {
-           sounds.levelUp();
-           alert(`כל הכבוד! עלית לדרגת ${getRank(child.totalPts).title}!`);
-       }
        addLog(`${child.name} סיים: ${taskName} (+${val})`);
        sounds.task();
        confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
@@ -1049,6 +1058,143 @@
            save(); render();
            alert('יומן הפעילות נמחק בהצלחה!');
        }
+   }
+  
+   function toggleAcc(el) {
+       const p = el.nextElementSibling;
+       p.style.display = p.style.display === 'block' ? 'none' : 'block';
+   }
+  
+   function copyChildLinks() {
+       const baseUrl = window.location.href.split('?')[0];
+       let report = "לינקים אישיים לגיבורים:\n\n";
+       state.children.forEach(c => { report += `${c.name}: ${baseUrl}?childId=${c.id}\n`; });
+       navigator.clipboard.writeText(report).then(() => { alert("הלינקים הועתקו! ניתן להדביק בוואטסאפ."); });
+   }
+  
+   function handleImageUpload(event) {
+       const file = event.target.files[0]; if(!file) return;
+       const reader = new FileReader();
+       reader.onload = function(e) {
+           if(!state.proofs) state.proofs={};
+           state.proofs[Date.now()] = { img: e.target.result, by: state.children[state.activeChild].name };
+           const p = pendingTaskId;
+           if(p) completeTask(p.id, p.val, p.name);
+           pendingTaskId=null;
+       };
+       reader.readAsDataURL(file);
+   }
+  
+   function approvePending(id) {
+       const p = state.pendingApprovals.find(x => x.id === id);
+       if(!p) return;
+       state.pendingApprovals = state.pendingApprovals.filter(x => x.id !== id);
+       const child = state.children.find(c => c.id === p.childId);
+       if(child) completeTask(p.taskId, p.val, p.taskName);
+       save(); render();
+   }
+  
+   function rejectPending(id) {
+       state.pendingApprovals = state.pendingApprovals.filter(x => x.id !== id);
+       save(); render();
+   }
+  
+   function advQuest(id, name) {
+       const q = state.quests.find(x => x.id === id);
+       if(!q) return;
+       if (q.current >= q.steps) {
+           alert(`הפרוייקט "${name}" כבר הושלם!`);
+           return;
+       }
+       q.current = (q.current || 0) + 1;
+       if(q.current >= q.steps) {
+           const child = state.children[state.activeChild];
+           child.pts += 100;
+           child.totalPts += 100;
+           sounds.questFinish();
+           confetti({particleCount:200});
+           alert(`🎉 ${name} הושלם! +100 נקודות`);
+       }
+       save(); render();
+   }
+  
+   function renderAvatarShopMain() {
+       let filtered = state.availableAvatars || [];
+       if (currentAvatarCategory !== 'all') filtered = filtered.filter(av => av.category === currentAvatarCategory);
+       
+       let html = '';
+       filtered.forEach(av => {
+           const display = av.img ? `<img src="${av.img}" style="width:72px;height:72px;border-radius:50%;">` : `<span>${av.emoji}</span>`;
+           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${display}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
+       });
+       document.getElementById('avatarShopContent').innerHTML = html || '<p style="opacity:0.6;padding:30px 0;">אין אווטרים בקטגוריה זו</p>';
+   }
+  
+   function buyAvatar(id) {
+       const av = state.availableAvatars.find(a => a.id === id);
+       if (!av) return;
+       const child = state.children[state.activeChild];
+       if (child.pts >= av.cost && confirm(`לרכוש את ${av.emoji || ''} ${av.name} ב-${av.cost} 💎?`)) {
+           child.pts -= av.cost;
+           if(!state.avatars) state.avatars = [];
+           state.avatars.push({childId: child.id, id: av.id, emoji: av.emoji, name: av.name, img: av.img, date: new Date().toLocaleDateString('he-IL')});
+           addLog(`${child.name} רכש אווטר: ${av.name}`);
+           save(); render();
+           alert(`🎉 האווטר ${av.name} נוסף לפרופיל שלך!`);
+       } else if (child.pts < av.cost) {
+           alert("חסרות לך עוד " + (av.cost - child.pts) + " נקודות...");
+       }
+   }
+  
+   function toggleAvatarShop() {
+       const child = state.children[state.activeChild];
+       if (!child.showAvatarShop) return alert("חנות האווטרים מוסתרת עבורך על ידי ההורה.");
+       const shop = document.getElementById('avatarShopMain');
+       const icon = document.getElementById('avatarToggleIcon');
+       const isHidden = shop.style.display === 'none' || !shop.style.display;
+       shop.style.display = isHidden ? 'block' : 'none';
+       icon.textContent = isHidden ? '▲' : '▼';
+       if (isHidden) renderAvatarShopMain();
+   }
+  
+   function filterAvatarCategory(cat, btn) {
+       currentAvatarCategory = cat;
+       document.querySelectorAll('.avatar-cat-btn').forEach(b => b.classList.remove('active'));
+       btn.classList.add('active');
+       renderAvatarShopMain();
+   }
+  
+   function spinWheel() {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
+       if (done.length < 7 || tasksToday.length === 0) return alert("צריך לסיים לפחות 7 משימות היום כדי לפתוח את הגלגל!");
+       if (state.wheelDone && state.wheelDone[child.id]) return alert("כבר השתמשת בגלגל המזל היום!");
+       
+       const bonus = wheelOptions[Math.floor(Math.random() * wheelOptions.length)];
+       child.pts += bonus;
+       child.totalPts += bonus;
+       if(!state.wheelDone) state.wheelDone = {};
+       state.wheelDone[child.id] = true;
+       addLog(`${child.name} זכה בגלגל המזל ב-${bonus} נקודות`);
+       sounds.bonus();
+       confetti({ particleCount: 180, spread: 90 });
+       save();
+       render();
+       alert(`🎉 כל הכבוד! זכית ב-${bonus} נקודות!`);
+   }
+  
+   function spinBonusWheel() {
+       const child = state.children[state.activeChild];
+       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
+       alert("🎡 גלגל הצ'ופר מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
+       child.pts += bonus;
+       child.totalPts += bonus;
+       if(!state.extraWheelSpins) state.extraWheelSpins = {};
+       state.extraWheelSpins[child.id] = Math.max(0, (state.extraWheelSpins[child.id] || 1) - 1);
+       addLog(`${child.name} זכה בגלגל צ'ופר ב-${bonus} נקודות`);
+       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
+       save(); render();
    }
   
    render();
