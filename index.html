@@ -319,7 +319,7 @@
   
    let state = {
        activeChild:0,
-       children:[{id:1, name:"ילד 1", pts:0, totalPts:0, streak:0, lastDate:""}],
+       children:[{id:1, name:"ילד 1", pts:0, totalPts:0, streak:0, lastFullDate:""}],
        tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{},
        darkMode: null,
        logs: [],
@@ -391,7 +391,7 @@
            state.children.forEach(c => {
                if(c.totalPts === undefined) c.totalPts = c.pts || 0;
                if(c.streak === undefined) c.streak = 0;
-               if(c.lastDate === undefined) c.lastDate = "";
+               if(c.lastFullDate === undefined) c.lastFullDate = "";
            });
            if (isInitialLoad && targetChildId) {
                const idx = state.children.findIndex(c => c.id == targetChildId);
@@ -429,6 +429,39 @@
        const type = document.getElementById('addType').value;
        const list = (type === 'reward') ? emojiSet.reward : emojiSet.task;
        document.getElementById('emojiPicker').innerHTML = list.map(e => `<span class="emoji-btn" style="cursor:pointer; font-size:1.5rem;" onclick="document.getElementById('addIcon').value='${e}'">${e}</span>`).join('');
+   }
+  
+   function spinWheel() {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
+       if (done.length < 7 || tasksToday.length === 0) return alert("צריך לסיים לפחות 7 משימות היום כדי לפתוח את הגלגל!");
+       if (state.wheelDone && state.wheelDone[child.id]) return alert("כבר השתמשת בגלגל המזל היום!");
+       
+       const bonus = wheelOptions[Math.floor(Math.random() * wheelOptions.length)];
+       child.pts += bonus;
+       child.totalPts += bonus;
+       if(!state.wheelDone) state.wheelDone = {};
+       state.wheelDone[child.id] = true;
+       addLog(`${child.name} זכה בגלגל המזל ב-${bonus} נקודות`);
+       sounds.bonus();
+       confetti({ particleCount: 180, spread: 90 });
+       save();
+       render();
+       alert(`🎉 כל הכבוד! זכית ב-${bonus} נקודות!`);
+   }
+  
+   function spinBonusWheel() {
+       const child = state.children[state.activeChild];
+       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
+       alert("🎡 גלגל הצ'ופר מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
+       child.pts += bonus;
+       child.totalPts += bonus;
+       if(!state.extraWheelSpins) state.extraWheelSpins = {};
+       state.extraWheelSpins[child.id] = Math.max(0, (state.extraWheelSpins[child.id] || 1) - 1);
+       addLog(`${child.name} זכה בגלגל צ'ופר ב-${bonus} נקודות`);
+       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
+       save(); render();
    }
   
    function openChallenge(task) {
@@ -599,7 +632,8 @@
            if (confirm(`לפדות את ${reward.name} ב-${reward.val} 💎?`)) {
                child.pts -= reward.val;
                addLog(`${child.name} פדה פרס: ${reward.name}`);
-               addRedemption(child.name, reward.name);
+               if(!state.redemptions) state.redemptions = [];
+               state.redemptions.unshift({date: new Date().toLocaleDateString('he-IL'), childName: child.name, rewardName: reward.name});
                sounds.reward();
                confetti({ particleCount: 120, spread: 70 });
                save();
@@ -652,13 +686,6 @@
        
        const oldRank = getRank(child.totalPts || 0).title;
        
-       const today = new Date().toDateString();
-       const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-       const yesterdayStr = yesterday.toDateString();
-       if (child.lastDate === yesterdayStr) child.streak = (child.streak || 0) + 1;
-       else if (child.lastDate !== today) child.streak = 1;
-       child.lastDate = today;
-       
        state.dailyDone[child.id].push(id);
        child.pts += val;
        child.totalPts += val;
@@ -678,13 +705,27 @@
        const child = state.children[state.activeChild];
        const done = state.dailyDone[child.id] || [];
        const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
+       
        if(tasksToday.length > 0 && done.length >= tasksToday.length && !(state.allTasksDoneToday[child.id] || false)) {
            state.allTasksDoneToday[child.id] = true;
+           
+           const todayStr = new Date().toDateString();
+           const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+           const yesterdayStr = yesterday.toDateString();
+           
+           if (child.lastFullDate === yesterdayStr) {
+               child.streak = (child.streak || 0) + 1;
+           } else {
+               child.streak = 1;
+           }
+           child.lastFullDate = todayStr;
+           
            applauseSound();
            confetti({particleCount:250, spread:120, origin:{y:0.6}});
            alert("🎉 ברכות! סיימת את כל המשימות להיום!");
            addLog(`🎉 ${child.name} סיים את כל המשימות להיום!`);
            save();
+           render();
        }
    }
   
@@ -731,7 +772,7 @@
       
        document.getElementById('manageCoops').innerHTML = (state.coops||[]).map((c,i) => `<div class="manage-row"><span>🤝</span><input class="input-edit" value="${c.name}" onchange="state.coops[${i}].name=this.value;save();render();"><input type="number" style="width:80px" value="${c.goal||100}" onchange="state.coops[${i}].goal=parseInt(this.value)||100;save();render();"><button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button></div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
       
-       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `<div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;"><b>${i+1}.</b><input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();"><div style="font-size:0.75rem;">נקודות: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);state.children[${i}].totalPts=parseInt(this.value);save();render();" style="width:70px;"></div><button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button><button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button></div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastDate:\'\'});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
+       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `<div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;"><b>${i+1}.</b><input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();"><div style="font-size:0.75rem;">נקודות: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);state.children[${i}].totalPts=parseInt(this.value);save();render();" style="width:70px;"></div><button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button><button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button></div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastFullDate:\'\'});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
       
        let avatarsHTML = `<h4>➕ הוספת אווטר חדש</h4><div style="display:flex; gap:8px; flex-wrap:wrap;"><input id="newAvatarName" placeholder="שם" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarEmoji" placeholder="אימוג'י" style="width:70px;text-align:center;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarCost" type="number" value="60" style="width:80px;padding:10px;border-radius:8px;border:1px solid #ccc;"><select id="newAvatarCategory" style="padding:10px;border-radius:8px;"><option value="regular">מודרני</option><option value="biblical">תנ״כי</option></select><button onclick="document.getElementById('avatarImageInput').click()" style="background:#00cec9;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;">📸 תמונה</button><button onclick="addNewAvatar()" style="background:var(--success);color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">הוסף</button></div>`;
        
@@ -795,19 +836,6 @@
        save(); render();
    }
   
-   function spinBonusWheel() {
-       const child = state.children[state.activeChild];
-       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
-       alert("🎡 גלגל הצ'ופר מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
-       child.pts += bonus;
-       child.totalPts += bonus;
-       if(!state.extraWheelSpins) state.extraWheelSpins = {};
-       state.extraWheelSpins[child.id] = Math.max(0, (state.extraWheelSpins[child.id] || 1) - 1);
-       addLog(`${child.name} זכה בגלגל צ'ופר ב-${bonus} נקודות`);
-       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
-       save(); render();
-   }
-  
    function addItem() {
        const type = document.getElementById('addType').value;
        const name = document.getElementById('addName').value;
@@ -863,7 +891,7 @@
        if(confirm('איפוס מלא של כל הנתונים?\n(כל הנקודות, רצף, אווטרים, היסטוריה – הכל יימחק)')) {
            state = {
                activeChild: 0,
-               children: state.children.map(c => ({id: c.id, name: c.name, pts: 0, totalPts: 0, streak: 0, lastDate: ""})),
+               children: state.children.map(c => ({id: c.id, name: c.name, pts: 0, totalPts: 0, streak: 0, lastFullDate: ""})),
                tasks: state.tasks,
                rewards: state.rewards,
                quests: state.quests,
@@ -923,6 +951,35 @@
    }
   
    function clearAllProofs() { if(confirm('למחוק את כל הזיכרונות והתמונות?')){state.proofs={};save();render();}}
+  
+   function approvePending(id) {
+       const p = state.pendingApprovals.find(x => x.id === id);
+       if(!p) return;
+       state.pendingApprovals = state.pendingApprovals.filter(x => x.id !== id);
+       const child = state.children.find(c => c.id === p.childId);
+       if(child) completeTask(p.taskId, p.val, p.taskName);
+       save(); render();
+   }
+  
+   function rejectPending(id) {
+       state.pendingApprovals = state.pendingApprovals.filter(x => x.id !== id);
+       save(); render();
+   }
+  
+   function advQuest(id, name) {
+       const q = state.quests.find(x => x.id === id);
+       if(!q) return;
+       q.current = (q.current || 0) + 1;
+       if(q.current >= q.steps) {
+           const child = state.children[state.activeChild];
+           child.pts += 100;
+           child.totalPts += 100;
+           sounds.questFinish();
+           confetti({particleCount:200});
+           alert(`🎉 ${name} הושלם! +100 נקודות`);
+       }
+       save(); render();
+   }
   
    render();
 </script>
