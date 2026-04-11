@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V39 - Order + Emoji Rewards</title>
+   <title>Family Hero 🌟 V40 - Categories + Ranks</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -131,6 +131,7 @@
                <div class="category-tabs" id="catFilters">
                    <button class="cat-btn active" onclick="filterTasks('all', this)">הכל</button>
                    <button class="cat-btn" onclick="filterTasks('בוקר', this)">☀️ בוקר</button>
+                   <button class="cat-btn" onclick="filterTasks('צהריים', this)">🥗 צהריים</button>
                    <button class="cat-btn" onclick="filterTasks('ערב', this)">🌙 ערב</button>
                </div>
            </div>
@@ -276,7 +277,7 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V39 FULL - 1087 שורות ======================
+   // ====================== V40 FULL - 1098 שורות ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -432,122 +433,6 @@
        document.getElementById('emojiPicker').innerHTML = list.map(e => `<span class="emoji-btn" style="cursor:pointer; font-size:1.5rem;" onclick="document.getElementById('addIcon').value='${e}'">${e}</span>`).join('');
    }
   
-   function spinWheel() {
-       const child = state.children[state.activeChild];
-       const done = state.dailyDone[child.id] || [];
-       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
-       if (done.length < 7 || tasksToday.length === 0) return alert("צריך לסיים לפחות 7 משימות היום כדי לפתוח את הגלגל!");
-       if (state.wheelDone && state.wheelDone[child.id]) return alert("כבר השתמשת בגלגל המזל היום!");
-       
-       const bonus = wheelOptions[Math.floor(Math.random() * wheelOptions.length)];
-       child.pts += bonus;
-       child.totalPts += bonus;
-       if(!state.wheelDone) state.wheelDone = {};
-       state.wheelDone[child.id] = true;
-       addLog(`${child.name} זכה בגלגל המזל ב-${bonus} נקודות`);
-       sounds.bonus();
-       confetti({ particleCount: 180, spread: 90 });
-       save();
-       render();
-       alert(`🎉 כל הכבוד! זכית ב-${bonus} נקודות!`);
-   }
-  
-   function spinBonusWheel() {
-       const child = state.children[state.activeChild];
-       const bonus = wheelOptions[Math.floor(Math.random()*wheelOptions.length)];
-       alert("🎡 גלגל הצ'ופר מסתובב... ונעצר על " + bonus + " נקודות בונוס!");
-       child.pts += bonus;
-       child.totalPts += bonus;
-       if(!state.extraWheelSpins) state.extraWheelSpins = {};
-       state.extraWheelSpins[child.id] = Math.max(0, (state.extraWheelSpins[child.id] || 1) - 1);
-       addLog(`${child.name} זכה בגלגל צ'ופר ב-${bonus} נקודות`);
-       sounds.bonus(); confetti({ particleCount: 150, spread: 100 });
-       save(); render();
-   }
-  
-   function openChallenge(task) {
-       const modal = document.getElementById('challengeModal');
-       const content = document.getElementById('modalContent');
-       modal.style.display = 'flex';
-       const closeHTML = `<span class="modal-close" onclick="document.getElementById('challengeModal').style.display='none'">✕</span>`;
-       
-       if (task.vType === 'math') {
-           const n1 = Math.floor(Math.random() * 8) + 2;
-           const n2 = Math.floor(Math.random() * 8) + 2;
-           const ans = n1 * n2;
-           content.innerHTML = `${closeHTML}<h2 style="font-size:2rem; margin-bottom:10px;">🧮 אתגר חשבון!</h2><p style="font-size:1.6rem; font-weight:bold; margin:20px 0;">כמה זה ${n1} × ${n2}?</p><input type="number" id="mathAns" style="font-size:2rem; text-align:center; width:140px; padding:10px; border:3px solid var(--primary); border-radius:12px;"><button onclick="checkChallenge(${task.id}, ${ans}, document.getElementById('mathAns').value)" style="margin-top:25px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">✅ בדוק תשובה</button>`;
-       } else if (task.vType === 'quiz') {
-           const badOpts = (task.vOptions || '').split(',').map(s => s.trim()).filter(s => s !== "");
-           const allOpts = [task.vAnswer.trim(), ...badOpts].sort(() => Math.random() - 0.5);
-           content.innerHTML = `${closeHTML}<h2 style="margin-bottom:15px;">📚 שאלה אמריקאית</h2><p style="font-size:1.2rem; margin-bottom:20px; line-height:1.4;">${task.vQuestion}</p>${allOpts.map(o => `<button class="quiz-option" onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', '${o.replace(/'/g, "\\'")}')">${o}</button>`).join('')}`;
-       } else if (task.vType === 'open' || task.vType === 'code') {
-           content.innerHTML = `${closeHTML}<h2 style="margin-bottom:15px;">${task.vType === 'open' ? '📝 תשובה פתוחה' : '🔑 קוד סודי'}</h2><p style="margin-bottom:15px;">${task.vQuestion}</p><input type="text" id="openAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;"><button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('openAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>`;
-       }
-   }
-  
-   function checkChallenge(taskId, correct, user) {
-       if (String(correct) === String(user)) {
-           document.getElementById('challengeModal').style.display = 'none';
-           alert("✅ תשובה נכונה! כל הכבוד!");
-           const task = state.tasks.find(t => t.id === taskId);
-           if (task) completeTask(task.id, task.val, task.name);
-       } else {
-           const modalEl = document.querySelector('.modal-content');
-           if (modalEl) modalEl.style.borderColor = 'var(--danger)';
-           alert("❌ תשובה לא נכונה, נסה שוב! 💪");
-           setTimeout(() => { if (modalEl) modalEl.style.borderColor = 'var(--child-color)'; }, 1200);
-       }
-   }
-  
-   function toggleDarkMode() {
-       state.darkMode = !state.darkMode;
-       save(); applyDarkMode();
-   }
-  
-   function applyDarkMode() {
-       const btn = document.getElementById('darkModeBtn');
-       if(state.darkMode) {
-           document.body.classList.add('dark-mode');
-           document.documentElement.classList.remove('manual-light');
-           if(btn) btn.innerText = "☀️ מצב יום";
-       } else {
-           document.body.classList.remove('dark-mode');
-           document.documentElement.classList.add('manual-light');
-           if(btn) btn.innerText = "🌙 מצב לילה";
-       }
-   }
-  
-   function toggleAdminPanel() {
-       showAdmin = !showAdmin;
-       if(showAdmin) updateEmojiList();
-       render();
-   }
-  
-   function filterTasks(cat, btn) {
-       currentFilter = cat;
-       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-       btn.classList.add('active');
-       render();
-   }
-  
-   function toggleAvatarShop() {
-       const child = state.children[state.activeChild];
-       if (!child.showAvatarShop) return alert("חנות האווטרים מוסתרת עבורך על ידי ההורה.");
-       const shop = document.getElementById('avatarShopMain');
-       const icon = document.getElementById('avatarToggleIcon');
-       const isHidden = shop.style.display === 'none' || !shop.style.display;
-       shop.style.display = isHidden ? 'block' : 'none';
-       icon.textContent = isHidden ? '▲' : '▼';
-       if (isHidden) renderAvatarShopMain();
-   }
-  
-   function filterAvatarCategory(cat, btn) {
-       currentAvatarCategory = cat;
-       document.querySelectorAll('.avatar-cat-btn').forEach(b => b.classList.remove('active'));
-       btn.classList.add('active');
-       renderAvatarShopMain();
-   }
-  
    function render() {
        if(!state.children || !state.children[state.activeChild]) return;
        const child = state.children[state.activeChild];
@@ -567,24 +452,20 @@
        document.getElementById('heroStreak').innerHTML = `<span class="${child.streak > 0 ? 'streak-fire':''}">🔥 רצף: ${child.streak || 0}</span>`;
       
        const filterByOwner = (item) => !item.owner || item.owner === 'all' || item.owner == child.id;
-       const nextReward = (state.rewards||[]).filter(filterByOwner).filter(r => r.val > child.pts).sort((a,b)=>a.val-b.val)[0];
-       document.getElementById('nextGoalText').innerText = nextReward ? `עוד ${nextReward.val - child.pts} ל${nextReward.icon} ${nextReward.name}` : "צברת הכל! אלוף!";
-       document.getElementById('mainBar').style.width = nextReward ? Math.min((child.pts / nextReward.val) * 100, 100) + "%" : "100%";
-      
-       const navEl = document.getElementById('childrenNav');
-       navEl.innerHTML = (state.children||[]).map((c,i)=>`<div class="child-tab ${i==state.activeChild?'active':''}" onclick="state.activeChild=${i};render();">${c.name}</div>`).join('');
-      
-       document.getElementById('tasksList').innerHTML = (state.tasks||[])
-           .filter(filterByOwner)
-           .filter(t => currentFilter === 'all' || t.category === currentFilter)
-           .map(t => {
-               const isPending = (state.pendingApprovals || []).some(p => p.taskId === t.id && p.childId === child.id);
-               return `<div class="list-item ${done.includes(t.id)?'completed':isPending?'pending':''}"><div><span style="font-size:1.6rem; margin-left:10px;">${t.icon||'✨'}</span><b>${t.name}</b><div style="font-size:0.7rem; opacity:0.6;">${t.category ? '🏷️ '+t.category : ''} (+${t.val}💎)</div></div><button class="btn-v ${done.includes(t.id)?'done':''} ${t.needsProof?'needs-camera':''} ${(t.vType && t.vType !== 'none') ? 'has-quiz' : ''} ${t.needsParentApproval?'needs-approval':''}" onclick="handleTaskClick(${t.id})">✓</button></div>`;
-           }).join('');
+       
+       // ====================== סידור אוטומטי לפי קטגוריה ======================
+       let sortedTasks = (state.tasks||[]).filter(filterByOwner).filter(t => currentFilter === 'all' || t.category === currentFilter);
+       const catOrder = { 'בוקר': 1, 'צהריים': 2, 'ערב': 3 };
+       sortedTasks.sort((a,b) => (catOrder[a.category] || 999) - (catOrder[b.category] || 999));
+       
+       document.getElementById('tasksList').innerHTML = sortedTasks.map(t => {
+           const isPending = (state.pendingApprovals || []).some(p => p.taskId === t.id && p.childId === child.id);
+           return `<div class="list-item ${done.includes(t.id)?'completed':isPending?'pending':''}"><div><span style="font-size:1.6rem; margin-left:10px;">${t.icon||'✨'}</span><b>${t.name}</b><div style="font-size:0.7rem; opacity:0.6;">${t.category ? '🏷️ '+t.category : ''} (+${t.val}💎)</div></div><button class="btn-v ${done.includes(t.id)?'done':''} ${t.needsProof?'needs-camera':''} ${(t.vType && t.vType !== 'none') ? 'has-quiz' : ''} ${t.needsParentApproval?'needs-approval':''}" onclick="handleTaskClick(${t.id})">✓</button></div>`;
+       }).join('');
       
        document.getElementById('rewardsList').innerHTML = (state.rewards||[]).filter(filterByOwner).map(r => `
            <div class="list-item">
-               <div><span style="font-size:1.5rem; margin-left:10px; cursor:pointer;" onclick="this.innerHTML=prompt('אימוג\'י חדש:', '${r.icon||'🎁'}')||'🎁';const idx=state.rewards.findIndex(x=>x.id===${r.id});if(idx>-1){state.rewards[idx].icon=this.innerHTML;save();render();}">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div>
+               <div><span style="font-size:1.5rem; margin-left:10px; cursor:pointer;" onclick="this.innerHTML=prompt('אימוגי חדש:', '${r.icon||'🎁'}')||'🎁';const idx=state.rewards.findIndex(x=>x.id===${r.id});if(idx>-1){state.rewards[idx].icon=this.innerHTML;save();render();}">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div>
                <button onclick="buyReward(${r.id})" style="background:var(--loot); border:none; padding:10px 20px; border-radius:15px; font-weight:bold; color:#2d3436; cursor:pointer; box-shadow:0 4px 0 #d4ac0d;">פדה</button>
            </div>`).join('');
       
@@ -633,156 +514,18 @@
        if (child.showAvatarShop) renderAvatarShopMain();
    }
   
-   function buyReward(rewardId) {
-       const reward = state.rewards.find(r => r.id === rewardId);
-       if (!reward) return alert("פרס לא נמצא");
-       
-       const child = state.children[state.activeChild];
-       if (child.pts >= reward.val) {
-           if (confirm(`אתה עומד לפדות את ${reward.name} ב-${reward.val} 💎 – אתה בטוח?`)) {
-               child.pts -= reward.val;
-               addLog(`${child.name} פדה פרס: ${reward.name}`);
-               if(!state.redemptions) state.redemptions = [];
-               state.redemptions.unshift({date: new Date().toLocaleDateString('he-IL'), childName: child.name, rewardName: reward.name});
-               sounds.reward();
-               confetti({ particleCount: 120, spread: 70 });
-               save();
-               render();
-               alert(`🎉 פדית את ${reward.name} בהצלחה!`);
-           }
-       } else {
-           alert(`חסרות לך עוד ${reward.val - child.pts} נקודות...`);
-       }
-   }
-  
-   function handleTaskClick(id) {
-       const child = state.children[state.activeChild];
-       const done = state.dailyDone[child.id] || [];
-       if(done.includes(id)) {
-           if(!confirm("לבטל את המשימה? (הנקודות ירדו)")) return;
-           const task = state.tasks.find(t => t.id === id);
-           if(!task) return;
-           state.dailyDone[child.id] = done.filter(x => x !== id);
-           state.allTasksDoneToday[child.id] = false;
-           child.pts = Math.max(0, child.pts - task.val);
-           child.totalPts = Math.max(0, child.totalPts - task.val);
-           save(); render(); return;
-       }
-      
-       const task = state.tasks.find(t => t.id === id);
-       if(!task) return;
-      
-       if (task.needsParentApproval) {
-           if (!state.pendingApprovals) state.pendingApprovals = [];
-           state.pendingApprovals.push({id: Date.now(), taskId: id, childId: child.id, childName: child.name, taskName: task.name, val: task.val, timestamp: new Date().toLocaleString('he-IL')});
-           addLog(`⏳ ${child.name} ביקש אישור על "${task.name}"`);
-           save(); render();
-           return;
-       }
-      
-       if (task.vType && task.vType !== 'none') {
-           openChallenge(task);
-       } else if (task.needsProof) {
-           pendingTaskId = {id, val: task.val, name: task.name};
-           document.getElementById('cameraInput').click();
-       } else {
-           completeTask(id, task.val, task.name);
-       }
-   }
-  
-   function completeTask(id, val, taskName) {
-       const child = state.children[state.activeChild];
-       if(!state.dailyDone[child.id]) state.dailyDone[child.id]=[];
-       
-       const oldRank = getRank(child.totalPts || 0).title;
-       
-       state.dailyDone[child.id].push(id);
-       child.pts += val;
-       child.totalPts += val;
-       
-       if(getRank(child.totalPts).title !== oldRank) {
-           sounds.levelUp();
-           alert(`כל הכבוד! עלית לדרגת ${getRank(child.totalPts).title}!`);
-       }
-       addLog(`${child.name} סיים: ${taskName} (+${val})`);
-       sounds.task();
-       confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
-       save(); render();
-       setTimeout(checkAllTasksDone, 300);
-   }
-  
-   function checkAllTasksDone() {
-       const child = state.children[state.activeChild];
-       const done = state.dailyDone[child.id] || [];
-       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
-       
-       if(tasksToday.length > 0 && done.length >= tasksToday.length && !(state.allTasksDoneToday[child.id] || false)) {
-           state.allTasksDoneToday[child.id] = true;
-           
-           const todayStr = new Date().toDateString();
-           const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-           const yesterdayStr = yesterday.toDateString();
-           
-           if (child.lastFullDate === yesterdayStr) {
-               child.streak = (child.streak || 0) + 1;
-           } else {
-               child.streak = 1;
-           }
-           child.lastFullDate = todayStr;
-           
-           applauseSound();
-           confetti({particleCount:250, spread:120, origin:{y:0.6}});
-           alert("🎉 ברכות! סיימת את כל המשימות להיום!");
-           addLog(`🎉 ${child.name} סיים את כל המשימות להיום!`);
-           save();
-           render();
-       }
-   }
-  
-   function applauseSound() {
-       [523,659,783,1046,1318,1568].forEach((f,i) => playTone(f,'sine',0.3,0.2,0,i*60));
-   }
-  
-   function renderAvatarShopMain() {
-       let filtered = state.availableAvatars || [];
-       if (currentAvatarCategory !== 'all') filtered = filtered.filter(av => av.category === currentAvatarCategory);
-       
-       let html = '';
-       filtered.forEach(av => {
-           const display = av.img ? `<img src="${av.img}" style="width:72px;height:72px;border-radius:50%;">` : `<span>${av.emoji}</span>`;
-           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${display}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
-       });
-       document.getElementById('avatarShopContent').innerHTML = html || '<p style="opacity:0.6;padding:30px 0;">אין אווטרים בקטגוריה זו</p>';
-   }
-  
-   function buyAvatar(id) {
-       const av = state.availableAvatars.find(a => a.id === id);
-       if (!av) return;
-       const child = state.children[state.activeChild];
-       if (child.pts >= av.cost && confirm(`לרכוש את ${av.emoji || ''} ${av.name} ב-${av.cost} 💎?`)) {
-           child.pts -= av.cost;
-           if(!state.avatars) state.avatars = [];
-           state.avatars.push({childId: child.id, id: av.id, emoji: av.emoji, name: av.name, img: av.img, date: new Date().toLocaleDateString('he-IL')});
-           addLog(`${child.name} רכש אווטר: ${av.name}`);
-           save(); render();
-           alert(`🎉 האווטר ${av.name} נוסף לפרופיל שלך!`);
-       } else if (child.pts < av.cost) {
-           alert("חסרות לך עוד " + (av.cost - child.pts) + " נקודות...");
-       }
-   }
-  
    function renderAdmin() {
        const ownerSelect = (current, type, idx) => `<select style="font-size:0.75rem; padding:4px;" onchange="state.${type}[${idx}].owner=this.value;save();render();"><option value="all" ${current==='all'?'selected':''}>לכולם</option>${state.children.map(c=>`<option value="${c.id}" ${current==c.id?'selected':''}>${c.name}</option>`).join('')}</select>`;
       
-       // ==================== משימות עם סדר + אימוג'י ====================
        document.getElementById('manageTasks').innerHTML = (state.tasks||[]).map((t,i) => `
            <div class="manage-row">
                <span style="font-size:1.8rem;cursor:pointer;" onclick="this.innerHTML=prompt('אימוגי חדש:', '${t.icon||'✨'}')||'✨';state.tasks[${i}].icon=this.innerHTML;save();render();">${t.icon||'✨'}</span>
                <input class="input-edit" value="${t.name}" onchange="state.tasks[${i}].name=this.value;save()">
                <select onchange="state.tasks[${i}].category=this.value;save();render();" style="font-size:0.7rem;">
                    <option value="" ${!t.category?'selected':''}>ללא קטגוריה</option>
-                   <option value="בוקר" ${t.category=='בוקר'?'selected':''}>בוקר</option>
-                   <option value="ערב" ${t.category=='ערב'?'selected':''}>ערב</option>
+                   <option value="בוקר" ${t.category=='בוקר'?'selected':''}>☀️ בוקר</option>
+                   <option value="צהריים" ${t.category=='צהריים'?'selected':''}>🥗 צהריים</option>
+                   <option value="ערב" ${t.category=='ערב'?'selected':''}>🌙 ערב</option>
                </select>
                ${ownerSelect(t.owner, 'tasks', i)}
                <select onchange="state.tasks[${i}].vType=this.value;save();render();" style="font-size:0.7rem;">
@@ -800,7 +543,6 @@
                <button onclick="if(confirm('למחוק?')){state.tasks.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('');
       
-       // ==================== פרסים עם אימוג'י ====================
        document.getElementById('manageRewards').innerHTML = (state.rewards||[]).map((r,i) => `
            <div class="manage-row">
                <span style="font-size:1.8rem;cursor:pointer;" onclick="this.innerHTML=prompt('אימוגי חדש:', '${r.icon||'🎁'}')||'🎁';state.rewards[${i}].icon=this.innerHTML;save();render();">${r.icon||'🎁'}</span>
@@ -827,18 +569,25 @@
                <button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
       
-       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => `
+       // ====================== תצוגת דרגות לילדים ======================
+       document.getElementById('manageChildren').innerHTML = (state.children||[]).map((c,i) => {
+           const rank = getRank(c.totalPts || 0);
+           return `
            <div class="manage-row" style="background:rgba(0,0,0,0.02); margin-bottom:5px; border-radius:10px;">
                 <b>${i+1}.</b>
                 <input class="input-edit" value="${c.name}" onchange="state.children[${i}].name=this.value;save();render();">
                 <div style="font-size:0.75rem;">
                    נקודות: <input type="number" value="${c.pts}" onchange="state.children[${i}].pts=parseInt(this.value);state.children[${i}].totalPts=parseInt(this.value);save();render();" style="width:70px;">
+                   <span style="margin-left:15px; font-weight:bold; color:var(--primary);">דרגה: ${rank.title}</span>
+                   <span style="margin-left:10px;">XP: ${c.totalPts || 0}</span>
                 </div>
                 <label style="margin-left:10px;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.8rem;"><input type="checkbox" ${c.showAvatarShop?'checked':''} onchange="state.children[${i}].showAvatarShop=this.checked;save();render();"> הצג חנות אווטרים</label>
                 <button onclick="grantWheelSpin(${c.id})" style="background:var(--loot); color:#2d3436; border:none; border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.9rem; margin-right:8px;">🎡 הענק גלגל</button>
                 <button onclick="if(confirm('למחוק ילד?')){state.children.splice(${i},1);save();render();}" style="border:none; background:none; cursor:pointer;">🗑️</button>
-           </div>`).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastFullDate:\'\', showAvatarShop:true});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
+           </div>`;
+       }).join('') + '<button onclick="state.children.push({id:Date.now(), name:\'חדש\', pts:0, totalPts:0, streak:0, lastFullDate:\'\', showAvatarShop:true});save();render();" style="width:100%; padding:10px; margin-top:10px; border-radius:10px; border:1px dashed var(--primary); cursor:pointer;">+ הוסף ילד חדש</button>';
       
+       // שאר הפאנלים (גלריית הוכחות, יומן, אווטרים וכו') נשארים בדיוק כמו ב-V38
        let avatarsHTML = `<h4>➕ הוספת אווטר חדש</h4><div style="display:flex; gap:8px; flex-wrap:wrap;"><input id="newAvatarName" placeholder="שם" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarEmoji" placeholder="אימוג'י" style="width:70px;text-align:center;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarCost" type="number" value="60" style="width:80px;padding:10px;border-radius:8px;border:1px solid #ccc;"><select id="newAvatarCategory" style="padding:10px;border-radius:8px;"><option value="regular">מודרני</option><option value="biblical">תנ״כי</option></select><button onclick="document.getElementById('avatarImageInput').click()" style="background:#00cec9;color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;">📸 תמונה</button><button onclick="addNewAvatar()" style="background:var(--success);color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">הוסף</button></div>`;
        
        avatarsHTML += (state.availableAvatars||[]).map((av,i) => `
@@ -864,7 +613,6 @@
        if (msgSelect) msgSelect.innerHTML = '<option value="all">לכולם</option>' + (state.children||[]).map(c => `<option value="${c.id}">${c.name}</option>`).join('');
    }
   
-   // ====================== תוספות V39 ======================
    function moveTaskUp(i) {
        if (i <= 0) return;
        const temp = state.tasks[i];
@@ -1068,6 +816,239 @@
            alert(`🎉 ${name} הושלם! +100 נקודות`);
        }
        save(); render();
+   }
+  
+   function renderAvatarShopMain() {
+       let filtered = state.availableAvatars || [];
+       if (currentAvatarCategory !== 'all') filtered = filtered.filter(av => av.category === currentAvatarCategory);
+       
+       let html = '';
+       filtered.forEach(av => {
+           const display = av.img ? `<img src="${av.img}" style="width:72px;height:72px;border-radius:50%;">` : `<span>${av.emoji}</span>`;
+           html += `<div onclick="buyAvatar(${av.id})" class="avatar-item">${display}<br><small>${av.name}<br>${av.cost}💎</small></div>`;
+       });
+       document.getElementById('avatarShopContent').innerHTML = html || '<p style="opacity:0.6;padding:30px 0;">אין אווטרים בקטגוריה זו</p>';
+   }
+  
+   function buyAvatar(id) {
+       const av = state.availableAvatars.find(a => a.id === id);
+       if (!av) return;
+       const child = state.children[state.activeChild];
+       if (child.pts >= av.cost && confirm(`לרכוש את ${av.emoji || ''} ${av.name} ב-${av.cost} 💎?`)) {
+           child.pts -= av.cost;
+           if(!state.avatars) state.avatars = [];
+           state.avatars.push({childId: child.id, id: av.id, emoji: av.emoji, name: av.name, img: av.img, date: new Date().toLocaleDateString('he-IL')});
+           addLog(`${child.name} רכש אווטר: ${av.name}`);
+           save(); render();
+           alert(`🎉 האווטר ${av.name} נוסף לפרופיל שלך!`);
+       } else if (child.pts < av.cost) {
+           alert("חסרות לך עוד " + (av.cost - child.pts) + " נקודות...");
+       }
+   }
+  
+   function toggleAvatarShop() {
+       const child = state.children[state.activeChild];
+       if (!child.showAvatarShop) return alert("חנות האווטרים מוסתרת עבורך על ידי ההורה.");
+       const shop = document.getElementById('avatarShopMain');
+       const icon = document.getElementById('avatarToggleIcon');
+       const isHidden = shop.style.display === 'none' || !shop.style.display;
+       shop.style.display = isHidden ? 'block' : 'none';
+       icon.textContent = isHidden ? '▲' : '▼';
+       if (isHidden) renderAvatarShopMain();
+   }
+  
+   function filterAvatarCategory(cat, btn) {
+       currentAvatarCategory = cat;
+       document.querySelectorAll('.avatar-cat-btn').forEach(b => b.classList.remove('active'));
+       btn.classList.add('active');
+       renderAvatarShopMain();
+   }
+  
+   function buyReward(rewardId) {
+       const reward = state.rewards.find(r => r.id === rewardId);
+       if (!reward) return alert("פרס לא נמצא");
+       
+       const child = state.children[state.activeChild];
+       if (child.pts >= reward.val) {
+           if (confirm(`אתה עומד לפדות את ${reward.name} ב-${reward.val} 💎 – אתה בטוח?`)) {
+               child.pts -= reward.val;
+               addLog(`${child.name} פדה פרס: ${reward.name}`);
+               if(!state.redemptions) state.redemptions = [];
+               state.redemptions.unshift({date: new Date().toLocaleDateString('he-IL'), childName: child.name, rewardName: reward.name});
+               sounds.reward();
+               confetti({ particleCount: 120, spread: 70 });
+               save();
+               render();
+               alert(`🎉 פדית את ${reward.name} בהצלחה!`);
+           }
+       } else {
+           alert(`חסרות לך עוד ${reward.val - child.pts} נקודות...`);
+       }
+   }
+  
+   function handleTaskClick(id) {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       if(done.includes(id)) {
+           if(!confirm("לבטל את המשימה? (הנקודות ירדו)")) return;
+           const task = state.tasks.find(t => t.id === id);
+           if(!task) return;
+           state.dailyDone[child.id] = done.filter(x => x !== id);
+           state.allTasksDoneToday[child.id] = false;
+           child.pts = Math.max(0, child.pts - task.val);
+           child.totalPts = Math.max(0, child.totalPts - task.val);
+           save(); render(); return;
+       }
+      
+       const task = state.tasks.find(t => t.id === id);
+       if(!task) return;
+      
+       if (task.needsParentApproval) {
+           if (!state.pendingApprovals) state.pendingApprovals = [];
+           state.pendingApprovals.push({id: Date.now(), taskId: id, childId: child.id, childName: child.name, taskName: task.name, val: task.val, timestamp: new Date().toLocaleString('he-IL')});
+           addLog(`⏳ ${child.name} ביקש אישור על "${task.name}"`);
+           save(); render();
+           return;
+       }
+      
+       if (task.vType && task.vType !== 'none') {
+           openChallenge(task);
+       } else if (task.needsProof) {
+           pendingTaskId = {id, val: task.val, name: task.name};
+           document.getElementById('cameraInput').click();
+       } else {
+           completeTask(id, task.val, task.name);
+       }
+   }
+  
+   function completeTask(id, val, taskName) {
+       const child = state.children[state.activeChild];
+       if(!state.dailyDone[child.id]) state.dailyDone[child.id]=[];
+       
+       const oldRank = getRank(child.totalPts || 0).title;
+       
+       state.dailyDone[child.id].push(id);
+       child.pts += val;
+       child.totalPts += val;
+       
+       if(getRank(child.totalPts).title !== oldRank) {
+           sounds.levelUp();
+           alert(`כל הכבוד! עלית לדרגת ${getRank(child.totalPts).title}!`);
+       }
+       addLog(`${child.name} סיים: ${taskName} (+${val})`);
+       sounds.task();
+       confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
+       save(); render();
+       setTimeout(checkAllTasksDone, 300);
+   }
+  
+   function checkAllTasksDone() {
+       const child = state.children[state.activeChild];
+       const done = state.dailyDone[child.id] || [];
+       const tasksToday = (state.tasks||[]).filter(t => !t.owner || t.owner === 'all' || t.owner == child.id);
+       
+       if(tasksToday.length > 0 && done.length >= tasksToday.length && !(state.allTasksDoneToday[child.id] || false)) {
+           state.allTasksDoneToday[child.id] = true;
+           
+           const todayStr = new Date().toDateString();
+           const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+           const yesterdayStr = yesterday.toDateString();
+           
+           if (child.lastFullDate === yesterdayStr) {
+               child.streak = (child.streak || 0) + 1;
+           } else {
+               child.streak = 1;
+           }
+           child.lastFullDate = todayStr;
+           
+           applauseSound();
+           confetti({particleCount:250, spread:120, origin:{y:0.6}});
+           alert("🎉 ברכות! סיימת את כל המשימות להיום!");
+           addLog(`🎉 ${child.name} סיים את כל המשימות להיום!`);
+           save();
+           render();
+       }
+   }
+  
+   function applauseSound() {
+       [523,659,783,1046,1318,1568].forEach((f,i) => playTone(f,'sine',0.3,0.2,0,i*60));
+   }
+  
+   function openChallenge(task) {
+       const modal = document.getElementById('challengeModal');
+       const content = document.getElementById('modalContent');
+       modal.style.display = 'flex';
+       const closeHTML = `<span class="modal-close" onclick="document.getElementById('challengeModal').style.display='none'">✕</span>`;
+       
+       if (task.vType === 'math') {
+           const n1 = Math.floor(Math.random() * 8) + 2;
+           const n2 = Math.floor(Math.random() * 8) + 2;
+           const ans = n1 * n2;
+           content.innerHTML = `${closeHTML}<h2 style="font-size:2rem; margin-bottom:10px;">🧮 אתגר חשבון!</h2><p style="font-size:1.6rem; font-weight:bold; margin:20px 0;">כמה זה ${n1} × ${n2}?</p><input type="number" id="mathAns" style="font-size:2rem; text-align:center; width:140px; padding:10px; border:3px solid var(--primary); border-radius:12px;"><button onclick="checkChallenge(${task.id}, ${ans}, document.getElementById('mathAns').value)" style="margin-top:25px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-size:1.2rem; font-weight:bold;">✅ בדוק תשובה</button>`;
+       } else if (task.vType === 'quiz') {
+           const badOpts = (task.vOptions || '').split(',').map(s => s.trim()).filter(s => s !== "");
+           const allOpts = [task.vAnswer.trim(), ...badOpts].sort(() => Math.random() - 0.5);
+           content.innerHTML = `${closeHTML}<h2 style="margin-bottom:15px;">📚 שאלה אמריקאית</h2><p style="font-size:1.2rem; margin-bottom:20px; line-height:1.4;">${task.vQuestion}</p>${allOpts.map(o => `<button class="quiz-option" onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', '${o.replace(/'/g, "\\'")}')">${o}</button>`).join('')}`;
+       } else if (task.vType === 'open' || task.vType === 'code') {
+           content.innerHTML = `${closeHTML}<h2 style="margin-bottom:15px;">${task.vType === 'open' ? '📝 תשובה פתוחה' : '🔑 קוד סודי'}</h2><p style="margin-bottom:15px;">${task.vQuestion}</p><input type="text" id="openAns" style="width:100%; font-size:1.5rem; text-align:center; padding:12px; border:3px solid var(--primary); border-radius:12px;"><button onclick="checkChallenge(${task.id}, '${task.vAnswer.trim()}', document.getElementById('openAns').value.trim())" style="margin-top:15px; width:100%; padding:15px; background:var(--primary); color:white; border:none; border-radius:15px; font-weight:bold;">אישור</button>`;
+       }
+   }
+  
+   function checkChallenge(taskId, correct, user) {
+       if (String(correct) === String(user)) {
+           document.getElementById('challengeModal').style.display = 'none';
+           alert("✅ תשובה נכונה! כל הכבוד!");
+           const task = state.tasks.find(t => t.id === taskId);
+           if (task) completeTask(task.id, task.val, task.name);
+       } else {
+           const modalEl = document.querySelector('.modal-content');
+           if (modalEl) modalEl.style.borderColor = 'var(--danger)';
+           alert("❌ תשובה לא נכונה, נסה שוב! 💪");
+           setTimeout(() => { if (modalEl) modalEl.style.borderColor = 'var(--child-color)'; }, 1200);
+       }
+   }
+  
+   function toggleDarkMode() {
+       state.darkMode = !state.darkMode;
+       save(); applyDarkMode();
+   }
+  
+   function applyDarkMode() {
+       const btn = document.getElementById('darkModeBtn');
+       if(state.darkMode) {
+           document.body.classList.add('dark-mode');
+           document.documentElement.classList.remove('manual-light');
+           if(btn) btn.innerText = "☀️ מצב יום";
+       } else {
+           document.body.classList.remove('dark-mode');
+           document.documentElement.classList.add('manual-light');
+           if(btn) btn.innerText = "🌙 מצב לילה";
+       }
+   }
+  
+   function toggleAdminPanel() {
+       showAdmin = !showAdmin;
+       if(showAdmin) updateEmojiList();
+       render();
+   }
+  
+   function filterTasks(cat, btn) {
+       currentFilter = cat;
+       document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+       btn.classList.add('active');
+       render();
+   }
+  
+   function clearAllProofs() { if(confirm('למחוק את כל הזיכרונות והתמונות?')){state.proofs={};save();render();}}
+  
+   function clearLogsOnly() {
+       if(confirm('למחוק את כל יומן הפעילות והרכישות?')) {
+           state.logs = [];
+           state.redemptions = [];
+           addLog("יומן הפעילות נמחק");
+           save(); render();
+           alert('יומן הפעילות נמחק בהצלחה!');
+       }
    }
   
    render();
