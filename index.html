@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V46 - Avatar Purchase Fixed</title>
+   <title>Family Hero 🌟 V47 - Child Purchase + Avatar Management Fixed</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -68,8 +68,8 @@
        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.08); filter: brightness(1.1);} 100% {transform: scale(1);} }
        @keyframes flame { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.2); opacity: 1; } }
       
-       #challengeModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-       .modal-content { background: var(--card-bg); padding: 35px; border-radius: 30px; width: 85%; max-width: 420px; text-align: center; box-shadow: var(--shadow); border: 4px solid var(--child-color); animation: modalSlide 0.3s ease-out; position: relative; }
+       #challengeModal, #avatarManagementModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+       .modal-content { background: var(--card-bg); padding: 35px; border-radius: 30px; width: 85%; max-width: 480px; text-align: center; box-shadow: var(--shadow); border: 4px solid var(--child-color); animation: modalSlide 0.3s ease-out; position: relative; }
        @keyframes modalSlide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
        .quiz-option { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ddd; border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; background: white; font-size: 1.1rem; }
        .quiz-option:hover { background: #f8f9fa; border-color: var(--child-color); transform: scale(1.02); }
@@ -91,6 +91,14 @@
 <body id="mainBody" onclick="initAudio()">
 <div id="challengeModal">
    <div class="modal-content" id="modalContent"></div>
+</div>
+
+<div id="avatarManagementModal">
+   <div class="modal-content" style="max-width:520px; max-height:90vh; overflow-y:auto;">
+       <span class="modal-close" onclick="document.getElementById('avatarManagementModal').style.display='none'">✕</span>
+       <h2 style="margin-top:0;">🎨 ניהול אווטרים כללי</h2>
+       <div id="avatarManagementContent"></div>
+   </div>
 </div>
 
 <div class="container">
@@ -275,7 +283,7 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V46 FULL - 1102 שורות ======================
+   // ====================== V47 FULL - 1102 שורות ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -332,7 +340,6 @@
    };
   
    let pendingTaskId = null;
-   let pendingAvatarId = null;
    let isInitialLoad = true;
    let showAdmin = isInitialAdmin;
    let currentFilter = 'all';
@@ -650,32 +657,93 @@
    }
   
    function showGeneralAvatarManagement() {
-       let html = `<h4>ניהול אווטרים כללי</h4>`;
-       html += `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:15px;"><input id="newAvatarName" placeholder="שם" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarEmoji" placeholder="אימוג'י" style="width:70px;text-align:center;padding:10px;border-radius:8px;border:1px solid #ccc;"><input id="newAvatarCost" type="number" value="60" style="width:80px;padding:10px;border-radius:8px;border:1px solid #ccc;"><select id="newAvatarCategory" style="padding:10px;border-radius:8px;"><option value="regular">מודרני</option><option value="biblical">תנ״כי</option></select><button onclick="addNewAvatarFromAdmin()" style="background:var(--success);color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">הוסף</button></div>`;
-       
-       html += (state.availableAvatars||[]).map((av,i) => `
-           <div class="manage-row">
-               <div style="font-size:2.5rem;width:60px">${av.img?`<img src="${av.img}" style="width:55px;height:55px;border-radius:50%;">`:av.emoji}</div>
-               <input class="input-edit" value="${av.name}" onchange="state.availableAvatars[${i}].name=this.value;save();render();">
-               <input type="number" style="width:70px" value="${av.cost}" onchange="state.availableAvatars[${i}].cost=parseInt(this.value);save();render();">
-               <button onclick="if(confirm('למחוק?')){state.availableAvatars.splice(${i},1);save();render();}" style="background:none;border:none;cursor:pointer;">🗑️</button>
-           </div>`).join('');
-       
-       alert("ניהול אווטרים כללי:\n\n" + html);
+       document.getElementById('avatarManagementModal').style.display = 'flex';
+       populateAvatarManagementModal();
    }
   
-   function addNewAvatarFromAdmin() {
-       const name = document.getElementById('newAvatarName').value.trim() || 'אווטר חדש';
-       const emoji = document.getElementById('newAvatarEmoji').value.trim();
-       const cost = parseInt(document.getElementById('newAvatarCost').value) || 60;
-       const category = document.getElementById('newAvatarCategory').value;
+   function populateAvatarManagementModal() {
+       let html = `
+           <h3>הוספת אווטר חדש</h3>
+           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+               <input id="newAvatarNameModal" placeholder="שם האווטר" style="flex:2; padding:12px; border-radius:12px; border:1px solid #ccc;">
+               <input id="newAvatarEmojiModal" placeholder="אימוג'י" style="width:80px; text-align:center; padding:12px; border-radius:12px; border:1px solid #ccc;">
+               <input id="newAvatarCostModal" type="number" value="60" style="width:90px; padding:12px; border-radius:12px; border:1px solid #ccc;">
+               <select id="newAvatarCategoryModal" style="padding:12px; border-radius:12px;">
+                   <option value="regular">מודרני</option>
+                   <option value="biblical">תנ״כי</option>
+               </select>
+               <button onclick="handleAvatarImageUploadModal()" style="padding:12px 20px; background:var(--primary); color:white; border:none; border-radius:12px; cursor:pointer;">📸 העלאת תמונה</button>
+               <button onclick="addNewAvatarFromModal()" style="background:var(--success); color:white; border:none; padding:12px 25px; border-radius:12px; cursor:pointer; font-weight:bold;">הוסף אווטר</button>
+           </div>
+           <h3>אווטרים קיימים</h3>
+           <div id="existingAvatarsList" style="max-height:400px; overflow-y:auto;"></div>
+       `;
+       document.getElementById('avatarManagementContent').innerHTML = html;
+       renderExistingAvatarsList();
+   }
+  
+   let tempModalAvatarImage = null;
+   function handleAvatarImageUploadModal() {
+       const input = document.createElement('input');
+       input.type = 'file';
+       input.accept = 'image/*';
+       input.onchange = function(e) {
+           const file = e.target.files[0];
+           if(!file) return;
+           const reader = new FileReader();
+           reader.onload = function(ev) {
+               tempModalAvatarImage = ev.target.result;
+               alert('✅ תמונה נטענה בהצלחה – תישמר עם האווטר החדש!');
+           };
+           reader.readAsDataURL(file);
+       };
+       input.click();
+   }
+  
+   function addNewAvatarFromModal() {
+       const name = document.getElementById('newAvatarNameModal').value.trim() || 'אווטר חדש';
+       const emoji = document.getElementById('newAvatarEmojiModal').value.trim();
+       const cost = parseInt(document.getElementById('newAvatarCostModal').value) || 60;
+       const category = document.getElementById('newAvatarCategoryModal').value;
        
-       const newAv = {id: Date.now(), name, emoji: emoji || '⭐', cost, category, img: window.tempAvatarImage || null};
+       const newAv = {
+           id: Date.now(),
+           name: name,
+           emoji: emoji || '⭐',
+           cost: cost,
+           category: category,
+           img: tempModalAvatarImage || null
+       };
        if(!state.availableAvatars) state.availableAvatars = [];
        state.availableAvatars.push(newAv);
-       window.tempAvatarImage = null;
+       tempModalAvatarImage = null;
        save(); render();
-       alert('אווטר כללי נוסף!');
+       populateAvatarManagementModal();
+       alert('✅ אווטר חדש נוסף בהצלחה!');
+   }
+  
+   function renderExistingAvatarsList() {
+       let html = '';
+       (state.availableAvatars || []).forEach((av, i) => {
+           html += `
+           <div style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(0,0,0,0.03); margin-bottom:8px; border-radius:12px;">
+               <div style="font-size:2.8rem; width:60px; text-align:center;">${av.img ? `<img src="${av.img}" style="width:55px;height:55px;border-radius:50%;">` : av.emoji}</div>
+               <div style="flex:1;">
+                   <input value="${av.name}" onchange="state.availableAvatars[${i}].name=this.value;save();" style="width:100%; padding:6px; border-radius:8px; border:1px solid #ccc;">
+               </div>
+               <input type="number" value="${av.cost}" onchange="state.availableAvatars[${i}].cost=parseInt(this.value);save();" style="width:70px; padding:6px; border-radius:8px; border:1px solid #ccc;">
+               <button onclick="deleteAvatar(${i});" style="background:var(--danger); color:white; border:none; padding:8px 14px; border-radius:8px; cursor:pointer;">🗑️</button>
+           </div>`;
+       });
+       document.getElementById('existingAvatarsList').innerHTML = html || '<p style="opacity:0.6; text-align:center; padding:30px 0;">אין אווטרים עדיין – הוסף אחד למעלה</p>';
+   }
+  
+   function deleteAvatar(index) {
+       if(confirm('למחוק את האווטר הזה לצמיתות?')) {
+           state.availableAvatars.splice(index, 1);
+           save(); render();
+           populateAvatarManagementModal();
+       }
    }
   
    function moveTaskUp(i) {
