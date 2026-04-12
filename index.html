@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V43 - Children Bar + Avatar Management</title>
+   <title>Family Hero 🌟 V44 - Avatar Purchase Fixed</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -274,7 +274,7 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V43 FULL - 1102 שורות ======================
+   // ====================== V44 FULL - 1102 שורות ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -486,16 +486,19 @@
            bonusBtn.innerHTML = `🎡 גלגל צ'ופר! (${extraSpins})`;
        }
       
-       const ownedAvatars = (state.avatars || []).filter(a => a.childId === child.id);
+       // ====================== תצוגת אווטר בפרופיל ======================
        const avatarEl = document.getElementById('currentAvatarDisplay');
        if (child.currentAvatar) {
            avatarEl.innerHTML = child.currentAvatar.img ? `<img src="${child.currentAvatar.img}" style="width:70px;height:70px;border-radius:50%;">` : child.currentAvatar.emoji;
            avatarEl.style.display = 'block';
-       } else if (ownedAvatars.length > 0) {
-           const latest = ownedAvatars[ownedAvatars.length-1];
-           avatarEl.innerHTML = latest.img ? `<img src="${latest.img}" style="width:70px;height:70px;border-radius:50%;">` : latest.emoji;
-           avatarEl.style.display = 'block';
-       } else avatarEl.style.display = 'none';
+       } else {
+           const ownedAvatars = (state.avatars || []).filter(a => a.childId === child.id);
+           if (ownedAvatars.length > 0) {
+               const latest = ownedAvatars[ownedAvatars.length-1];
+               avatarEl.innerHTML = latest.img ? `<img src="${latest.img}" style="width:70px;height:70px;border-radius:50%;">` : latest.emoji;
+               avatarEl.style.display = 'block';
+           } else avatarEl.style.display = 'none';
+       }
       
        const msgBox = document.getElementById('parentMessageBox');
        const latest = (state.messages || []).find(m => m.childId === 'all' || m.childId === child.id);
@@ -511,7 +514,6 @@
            document.getElementById('avatarShopMain').style.display = 'none';
        }
       
-       // ====================== BAR הילדים ======================
        let navHTML = '';
        state.children.forEach((c, i) => {
            navHTML += `<div onclick="switchChild(${i});" class="child-tab ${i === state.activeChild ? 'active' : ''}">${c.name}</div>`;
@@ -584,7 +586,6 @@
                <button onclick="if(confirm('למחוק אתגר משפחתי?')){state.coops.splice(${i},1);save();render()}" style="background:none; border:none; cursor:pointer;">🗑️</button>
            </div>`).join('') || '<small style="opacity:0.6">אין אתגרים משפחתיים</small>';
       
-       // ====================== ניקוד ילדים ואווטרים ======================
        let childrenHTML = (state.children||[]).map((c,i) => {
            const rank = getRank(c.pts || 0);
            return `
@@ -614,10 +615,7 @@
        const owned = (state.avatars || []).filter(a => a.childId === childId);
        if(owned.length === 0) msg += "עדיין אין אווטרים\n";
        else owned.forEach((a,i) => msg += `${i+1}. ${a.emoji || ''} ${a.name}\n`);
-       if(confirm(msg + "\n\nרוצה לבחור אווטר ראשי?")) {
-           // כאן אפשר להרחיב בהמשך
-           alert("לחיצה על אווטר בחנות תבחר אותו כראשי");
-       }
+       alert(msg);
    }
   
    function showGeneralAvatarManagement() {
@@ -632,10 +630,7 @@
                <button onclick="if(confirm('למחוק?')){state.availableAvatars.splice(${i},1);save();render();}" style="background:none;border:none;cursor:pointer;">🗑️</button>
            </div>`).join('');
        
-       const tempDiv = document.createElement('div');
-       tempDiv.innerHTML = html;
-       alert("ניהול אווטרים כללי:\n\n" + tempDiv.textContent); // פשוט להצגה – בהמשך אפשר להפוך לחלון
-       // כדי לשמור על קוד מלא, נשאיר את הלוגיקה כאן
+       alert("ניהול אווטרים כללי:\n\n" + html);
    }
   
    function addNewAvatarFromAdmin() {
@@ -858,10 +853,12 @@
        if (child.pts >= av.cost && confirm(`לרכוש את ${av.emoji || ''} ${av.name} ב-${av.cost} 💎?`)) {
            child.pts -= av.cost;
            if(!state.avatars) state.avatars = [];
-           state.avatars.push({childId: child.id, id: av.id, emoji: av.emoji, name: av.name, img: av.img, date: new Date().toLocaleDateString('he-IL')});
+           const newOwned = {childId: child.id, id: av.id, emoji: av.emoji, name: av.name, img: av.img, date: new Date().toLocaleDateString('he-IL')};
+           state.avatars.push(newOwned);
            child.currentAvatar = {emoji: av.emoji, img: av.img};
            addLog(`${child.name} רכש אווטר: ${av.name}`);
-           save(); render();
+           save(); 
+           render();
            alert(`🎉 האווטר ${av.name} נוסף לפרופיל שלך!`);
        } else if (child.pts < av.cost) {
            alert("חסרות לך עוד " + (av.cost - child.pts) + " נקודות...");
