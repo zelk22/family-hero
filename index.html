@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V46 - Avatar + Task Fix</title>
+   <title>Family Hero 🌟 V46 - Avatar Purchase Fixed</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -275,7 +275,7 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V45 FULL - 1102 שורות ======================
+   // ====================== V46 FULL - 1102 שורות ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -349,7 +349,35 @@
            state = {...state, ...data};
            
            if (!state.availableAvatars || state.availableAvatars.length === 0) {
-               state.availableAvatars = [ /* 27 אווטרים */ ];
+               state.availableAvatars = [
+                   {id:1, emoji:'🦸‍♂️', name:'סופרמן', cost:50, category:'regular'},
+                   {id:2, emoji:'👑', name:'מלך', cost:80, category:'regular'},
+                   {id:3, emoji:'🐉', name:'דרקון', cost:120, category:'regular'},
+                   {id:4, emoji:'🚀', name:'אסטרונאוט', cost:60, category:'regular'},
+                   {id:5, emoji:'🧙‍♂️', name:'קוסם', cost:90, category:'regular'},
+                   {id:6, emoji:'🦸‍♀️', name:'סופרגירל', cost:50, category:'regular'},
+                   {id:7, emoji:'🐼', name:'פנדה', cost:40, category:'regular'},
+                   {id:8, emoji:'🦄', name:'חד קרן', cost:70, category:'regular'},
+                   {id:9, emoji:'🤖', name:'רובוט', cost:100, category:'regular'},
+                   {id:10, emoji:'🦁', name:'אריה', cost:55, category:'regular'},
+                   {id:11, emoji:'🌈', name:'קשת', cost:45, category:'regular'},
+                   {id:12, emoji:'🧜‍♂️', name:'טריטון', cost:85, category:'regular'},
+                   {id:13, emoji:'🧚', name:'פיה', cost:65, category:'regular'},
+                   {id:14, emoji:'🦅', name:'נשר', cost:75, category:'regular'},
+                   {id:15, emoji:'🐺', name:'זאב', cost:95, category:'regular'},
+                   {id:16, emoji:'🛡️', name:'דוד המלך', cost:70, category:'biblical'},
+                   {id:17, emoji:'🪄', name:'משה רבנו', cost:85, category:'biblical'},
+                   {id:18, emoji:'🌳', name:'אברהם אבינו', cost:60, category:'biblical'},
+                   {id:19, emoji:'📜', name:'שמואל הנביא', cost:65, category:'biblical'},
+                   {id:20, emoji:'🏹', name:'דבורה הנביאה', cost:55, category:'biblical'},
+                   {id:21, emoji:'🐑', name:'רחל אמנו', cost:50, category:'biblical'},
+                   {id:22, emoji:'🧥', name:'יוסף הצדיק', cost:90, category:'biblical'},
+                   {id:23, emoji:'🦁', name:'שמשון הגיבור', cost:75, category:'biblical'},
+                   {id:24, emoji:'👑', name:'אסתר המלכה', cost:70, category:'biblical'},
+                   {id:25, emoji:'🗡️', name:'גדעון', cost:60, category:'biblical'},
+                   {id:26, emoji:'🌟', name:'יהושע בן נון', cost:80, category:'biblical'},
+                   {id:27, emoji:'🐪', name:'יעקב אבינו', cost:65, category:'biblical'}
+               ];
            }
            
            if (!state.redemptions) state.redemptions = [];
@@ -955,7 +983,7 @@
        sounds.task();
        confetti({ particleCount:100, spread:70, origin:{y:0.6}, colors: [childColors[state.activeChild % childColors.length], '#ffffff'] });
        save(); 
-       render();  // קריאה מיידית ל-render
+       render();  // קריאה מיידית
        setTimeout(checkAllTasksDone, 300);
    }
   
