@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V44 - Avatar Purchase Fixed</title>
+   <title>Family Hero 🌟 V45 - Avatar Selection Fixed</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -154,6 +154,7 @@
                    <button class="avatar-cat-btn active" onclick="filterAvatarCategory('all', this)">הכל</button>
                    <button class="avatar-cat-btn" onclick="filterAvatarCategory('regular', this)">מודרני</button>
                    <button class="avatar-cat-btn" onclick="filterAvatarCategory('biblical', this)">תנ״כי</button>
+                   <button class="avatar-cat-btn" onclick="showMyAvatars()" style="background:#00cec9;color:white;">אווטרים שלי</button>
                </div>
                <div id="avatarShopContent" style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px;"></div>
            </div>
@@ -274,7 +275,7 @@
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
 
 <script>
-   // ====================== V44 FULL - 1102 שורות ======================
+   // ====================== V45 FULL - 1102 שורות ======================
    const emojiSet = {
        task: ['🧹','🦷','🛌','📚','🍽️','🚿','👕','🧺','🗑️','👟','🐶','🪴','🥕','🥛','🧴','🎒','🏫','🎨','🎹','🏀','⚽','🚲','🧗','🧘','🧼','🍏','🍎','🥨'],
        reward: ['🍦','🎬','🎮','🎁','🍭','🍕','📱','🎈','🧸','🛹','🍫','🍿','🎡','🏰','🍩','🥞','💎','🎨','🧩','🎸','⚽','🧺','🚲','🏕️','🥤','🍩']
@@ -611,11 +612,42 @@
    function showPersonalAvatarManagement(childId) {
        const child = state.children.find(c => c.id === childId);
        if(!child) return;
-       let msg = `אווטרים של ${child.name}:\n\n`;
        const owned = (state.avatars || []).filter(a => a.childId === childId);
-       if(owned.length === 0) msg += "עדיין אין אווטרים\n";
-       else owned.forEach((a,i) => msg += `${i+1}. ${a.emoji || ''} ${a.name}\n`);
-       alert(msg);
+       if(owned.length === 0) {
+           alert(`ל${child.name} אין עדיין אווטרים`);
+           return;
+       }
+       let msg = `אווטרים של ${child.name} – לחץ על אחד כדי להציג אותו בפרופיל:\n\n`;
+       owned.forEach((a, i) => {
+           msg += `${i+1}. ${a.emoji || ''} ${a.name}\n`;
+       });
+       const choice = prompt(msg + "\nהזן מספר של האווטר שתרצה להציג:");
+       const num = parseInt(choice);
+       if(num > 0 && num <= owned.length) {
+           child.currentAvatar = {emoji: owned[num-1].emoji, img: owned[num-1].img};
+           save(); render();
+           alert(`האווטר ${owned[num-1].name} נבחר להצגה!`);
+       }
+   }
+  
+   function showMyAvatars() {
+       const child = state.children[state.activeChild];
+       const owned = (state.avatars || []).filter(a => a.childId === child.id);
+       if(owned.length === 0) {
+           alert("עדיין אין לך אווטרים. רכוש אחד מהחנות!");
+           return;
+       }
+       let msg = "אווטרים שלך – לחץ על אחד כדי להציג אותו:\n\n";
+       owned.forEach((a, i) => {
+           msg += `${i+1}. ${a.emoji || ''} ${a.name}\n`;
+       });
+       const choice = prompt(msg + "\nהזן מספר:");
+       const num = parseInt(choice);
+       if(num > 0 && num <= owned.length) {
+           child.currentAvatar = {emoji: owned[num-1].emoji, img: owned[num-1].img};
+           save(); render();
+           alert(`✅ האווטר ${owned[num-1].name} מוצג עכשיו בפרופיל שלך!`);
+       }
    }
   
    function showGeneralAvatarManagement() {
