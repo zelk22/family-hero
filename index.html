@@ -319,7 +319,31 @@
             {id:3, name:"ילד 3", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null},
             {id:4, name:"ילד 4", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null}
         ],
-       tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{},
+       tasks:[
+            {id:101, icon:'🌅', name:'לקום בבוקר בזמן', val:10, category:'בוקר', owner:'all', vType:'none'},
+            {id:102, icon:'🪥', name:'לצחצח שיניים', val:5, category:'בוקר', owner:'all', vType:'none'},
+            {id:103, icon:'🥗', name:'לאכול ארוחת צהריים', val:10, category:'צהריים', owner:'all', vType:'none'},
+            {id:104, icon:'📚', name:'שיעורי בית', val:20, category:'צהריים', owner:'all', vType:'none'},
+            {id:105, icon:'🛏️', name:'לסדר את החדר', val:15, category:'ערב', owner:'all', vType:'none'},
+            {id:106, icon:'🚿', name:'להתקלח', val:10, category:'ערב', owner:'all', vType:'none'},
+            {id:107, icon:'🥤', name:'לשתות 8 כוסות מים', val:10, category:'בוקר', owner:'all', vType:'none'},
+            {id:108, icon:'🎒', name:'לארוז תיק לבית ספר', val:10, category:'ערב', owner:'all', vType:'none'},
+            {id:109, icon:'🤝', name:'לעזור בסידור הבית', val:15, category:'צהריים', owner:'all', vType:'none'},
+            {id:110, icon:'📖', name:'לקרוא ספר 20 דקות', val:20, category:'ערב', owner:'all', vType:'none'}
+        ],
+        rewards:[
+            {id:201, icon:'🍕', name:'פיצה לבחירתי', val:50, owner:'all'},
+            {id:202, icon:'🎮', name:'שעה נוספת מסכים', val:80, owner:'all'},
+            {id:203, icon:'🎬', name:'בחירת סרט משפחתי', val:60, owner:'all'},
+            {id:204, icon:'🍦', name:'גלידה בטעם לבחירתי', val:40, owner:'all'},
+            {id:205, icon:'🛍️', name:'קניה קטנה בחנות', val:100, owner:'all'},
+            {id:206, icon:'🎯', name:'בחירת פעילות משפחתית', val:120, owner:'all'},
+            {id:207, icon:'💤', name:'שעת שינה מאוחרת', val:70, owner:'all'},
+            {id:208, icon:'🎪', name:'טיול כיפי', val:200, owner:'all'},
+            {id:209, icon:'🎁', name:'מתנת הפתעה', val:150, owner:'all'},
+            {id:210, icon:'👾', name:'משחק חדש', val:300, owner:'all'}
+        ],
+        quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{},
        darkMode: null,
        logs: [],
        redemptions: [],
@@ -347,6 +371,9 @@
    docRef.onSnapshot(doc => {
        if(doc.exists) {
            const data = doc.data();
+           // Don't overwrite defaults with empty arrays from Firestore
+           if (!data.tasks || data.tasks.length === 0) delete data.tasks;
+           if (!data.rewards || data.rewards.length === 0) delete data.rewards;
            state = {...state, ...data};
            
            if (!state.availableAvatars || state.availableAvatars.length === 0) {
@@ -388,35 +415,7 @@
            if (!state.extraWheelSpins) state.extraWheelSpins = {};
            if (!state.allTasksDoneToday) state.allTasksDoneToday = {};
 
-           if (!state.tasks || state.tasks.length === 0) {
-               state.tasks = [
-                   {id:101, icon:'🌅', name:'לקום בבוקר בזמן', val:10, category:'בוקר', owner:'all', vType:'none'},
-                   {id:102, icon:'🪥', name:'לצחצח שיניים', val:5, category:'בוקר', owner:'all', vType:'none'},
-                   {id:103, icon:'🥗', name:'לאכול ארוחת צהריים', val:10, category:'צהריים', owner:'all', vType:'none'},
-                   {id:104, icon:'📚', name:'שיעורי בית', val:20, category:'צהריים', owner:'all', vType:'none'},
-                   {id:105, icon:'🛏️', name:'לסדר את החדר', val:15, category:'ערב', owner:'all', vType:'none'},
-                   {id:106, icon:'🚿', name:'להתקלח', val:10, category:'ערב', owner:'all', vType:'none'},
-                   {id:107, icon:'🥤', name:'לשתות 8 כוסות מים', val:10, category:'בוקר', owner:'all', vType:'none'},
-                   {id:108, icon:'🎒', name:'לארוז תיק לבית ספר', val:10, category:'ערב', owner:'all', vType:'none'},
-                   {id:109, icon:'🤝', name:'לעזור בסידור הבית', val:15, category:'צהריים', owner:'all', vType:'none'},
-                   {id:110, icon:'📖', name:'לקרוא ספר 20 דקות', val:20, category:'ערב', owner:'all', vType:'none'}
-               ];
-           }
 
-           if (!state.rewards || state.rewards.length === 0) {
-               state.rewards = [
-                   {id:201, icon:'🍕', name:'פיצה לבחירתי', val:50, owner:'all'},
-                   {id:202, icon:'🎮', name:'שעה נוספת מסכים', val:80, owner:'all'},
-                   {id:203, icon:'🎬', name:'בחירת סרט משפחתי', val:60, owner:'all'},
-                   {id:204, icon:'🍦', name:'גלידה בטעם לבחירתי', val:40, owner:'all'},
-                   {id:205, icon:'🛍️', name:'קניה קטנה בחנות', val:100, owner:'all'},
-                   {id:206, icon:'🎯', name:'בחירת פעילות משפחתית', val:120, owner:'all'},
-                   {id:207, icon:'💤', name:'שעת שינה מאוחרת', val:70, owner:'all'},
-                   {id:208, icon:'🎪', name:'טיול כיפי', val:200, owner:'all'},
-                   {id:209, icon:'🎁', name:'מתנת הפתעה', val:150, owner:'all'},
-                   {id:210, icon:'👾', name:'משחק חדש', val:300, owner:'all'}
-               ];
-           }
            
            state.children.forEach(c => {
                if(c.totalPts === undefined) c.totalPts = c.pts || 0;
