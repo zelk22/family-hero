@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Family Hero 🌟 V47 - Child Purchase + Avatar Management Fixed</title>
+   <title>Family Hero 🌟 V48 - 4 Children + 10 Tasks/Rewards Default</title>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -92,7 +92,6 @@
 <div id="challengeModal">
    <div class="modal-content" id="modalContent"></div>
 </div>
-
 <div id="avatarManagementModal">
    <div class="modal-content" style="max-width:520px; max-height:90vh; overflow-y:auto;">
        <span class="modal-close" onclick="document.getElementById('avatarManagementModal').style.display='none'">✕</span>
@@ -100,7 +99,6 @@
        <div id="avatarManagementContent"></div>
    </div>
 </div>
-
 <div class="container">
    <header style="text-align: center; padding: 20px 0;">
        <h1 style="margin: 0; font-size: 2.2rem; background: linear-gradient(to left, var(--primary), var(--special)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Family Hero 🌟</h1>
@@ -129,9 +127,7 @@
        
        <div id="currentAvatarDisplay" style="margin-top:15px; text-align:center; font-size:2.8rem; display:none;"></div>
    </div>
-
    <div id="parentMessageBox" class="parent-message" style="display:none;"></div>
-
    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px;">
        <div>
            <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -168,7 +164,6 @@
            </div>
        </div>
    </div>
-
    <div id="adminWrapper">
        <h2 style="text-align:center; margin-top:0;">🛠️ ניהול משפחתי</h2>
       
@@ -176,7 +171,6 @@
            <button onclick="copyChildLinks()" style="flex: 2; padding:14px; background:var(--coop); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 10px rgba(0, 206, 201, 0.3);">🔗 העתק לינקים לילדים</button>
            <button onclick="toggleDarkMode()" id="darkModeBtn" style="flex: 1; padding:14px; background:#333; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🌙 מצב לילה</button>
        </div>
-
        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת פריט רגיל <span>▼</span></button>
        <div class="panel">
            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items: center;">
@@ -203,7 +197,6 @@
            </div>
            <div id="emojiPicker" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 5px; margin-top:15px; background:rgba(0,0,0,0.05); padding:10px; border-radius:10px;"></div>
        </div>
-
        <button class="accordion" onclick="toggleAcc(this)">➕ הוספת משימה חכמה <span>▼</span></button>
        <div class="panel">
            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
@@ -236,7 +229,6 @@
                </div>
            </div>
        </div>
-
        <button class="accordion" onclick="toggleAcc(this)">ניקוד ילדים ואווטרים <span>▼</span></button>
        <div class="panel" id="manageChildren"></div>
       
@@ -261,10 +253,8 @@
            <div id="activityLog" class="history-log">אין פעילות מתועדת.</div>
            <button onclick="clearLogsOnly()" style="width:100%; margin-top:15px; padding:12px; background:#ff7675; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">🗑️ מחק יומן פעילות (בלי איפוס נקודות)</button>
        </div>
-
        <button class="accordion" onclick="toggleAcc(this)">⏳ משימות ממתינות לאישור הורה <span>▼</span></button>
        <div class="panel" id="pendingApprovalsPanel"></div>
-
        <button class="accordion" onclick="toggleAcc(this)">📨 הודעות עידוד לילדים <span>▼</span></button>
        <div class="panel">
            <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -273,15 +263,12 @@
                <button onclick="addParentMessage()" style="background:var(--success); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">שלח הודעה</button>
            </div>
        </div>
-
        <button onclick="fullSystemReset()" style="width:100%; margin-top:15px; padding:14px; background:#ff7675; color:white; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">🗑️ איפוס מלא של כל הנתונים</button>
    </div>
 </div>
-
 <button id="adminToggle" class="admin-toggle-btn" onclick="toggleAdminPanel()">⚙️</button>
 <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 <input type="file" id="avatarImageInput" accept="image/*" style="display:none;" onchange="handleAvatarImageUpload(event)">
-
 <script>
    // ====================== V47 FULL - 1102 שורות ======================
    const emojiSet = {
@@ -326,7 +313,12 @@
   
    let state = {
        activeChild:0,
-       children:[{id:1, name:"ילד 1", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null}],
+       children:[
+            {id:1, name:"ילד 1", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null},
+            {id:2, name:"ילד 2", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null},
+            {id:3, name:"ילד 3", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null},
+            {id:4, name:"ילד 4", pts:0, totalPts:0, streak:0, lastFullDate:"", showAvatarShop:true, currentAvatar: null}
+        ],
        tasks:[], rewards:[], quests:[], coops:[], dailyDone:{}, proofs:{}, wheelDone:{},
        darkMode: null,
        logs: [],
@@ -344,6 +336,8 @@
    let showAdmin = isInitialAdmin;
    let currentFilter = 'all';
    let currentAvatarCategory = 'all';
+   let tasksExpanded = false;
+   let rewardsExpanded = false;
    let wheelOptions = [10,15,20,25,30,40,50,100];
   
    if (targetChildId && !isInitialAdmin) document.body.classList.add('is-child-mode');
@@ -393,6 +387,36 @@
            if (!state.avatars) state.avatars = [];
            if (!state.extraWheelSpins) state.extraWheelSpins = {};
            if (!state.allTasksDoneToday) state.allTasksDoneToday = {};
+
+           if (!state.tasks || state.tasks.length === 0) {
+               state.tasks = [
+                   {id:101, icon:'🌅', name:'לקום בבוקר בזמן', val:10, category:'בוקר', owner:'all', vType:'none'},
+                   {id:102, icon:'🪥', name:'לצחצח שיניים', val:5, category:'בוקר', owner:'all', vType:'none'},
+                   {id:103, icon:'🥗', name:'לאכול ארוחת צהריים', val:10, category:'צהריים', owner:'all', vType:'none'},
+                   {id:104, icon:'📚', name:'שיעורי בית', val:20, category:'צהריים', owner:'all', vType:'none'},
+                   {id:105, icon:'🛏️', name:'לסדר את החדר', val:15, category:'ערב', owner:'all', vType:'none'},
+                   {id:106, icon:'🚿', name:'להתקלח', val:10, category:'ערב', owner:'all', vType:'none'},
+                   {id:107, icon:'🥤', name:'לשתות 8 כוסות מים', val:10, category:'בוקר', owner:'all', vType:'none'},
+                   {id:108, icon:'🎒', name:'לארוז תיק לבית ספר', val:10, category:'ערב', owner:'all', vType:'none'},
+                   {id:109, icon:'🤝', name:'לעזור בסידור הבית', val:15, category:'צהריים', owner:'all', vType:'none'},
+                   {id:110, icon:'📖', name:'לקרוא ספר 20 דקות', val:20, category:'ערב', owner:'all', vType:'none'}
+               ];
+           }
+
+           if (!state.rewards || state.rewards.length === 0) {
+               state.rewards = [
+                   {id:201, icon:'🍕', name:'פיצה לבחירתי', val:50, owner:'all'},
+                   {id:202, icon:'🎮', name:'שעה נוספת מסכים', val:80, owner:'all'},
+                   {id:203, icon:'🎬', name:'בחירת סרט משפחתי', val:60, owner:'all'},
+                   {id:204, icon:'🍦', name:'גלידה בטעם לבחירתי', val:40, owner:'all'},
+                   {id:205, icon:'🛍️', name:'קניה קטנה בחנות', val:100, owner:'all'},
+                   {id:206, icon:'🎯', name:'בחירת פעילות משפחתית', val:120, owner:'all'},
+                   {id:207, icon:'💤', name:'שעת שינה מאוחרת', val:70, owner:'all'},
+                   {id:208, icon:'🎪', name:'טיול כיפי', val:200, owner:'all'},
+                   {id:209, icon:'🎁', name:'מתנת הפתעה', val:150, owner:'all'},
+                   {id:210, icon:'👾', name:'משחק חדש', val:300, owner:'all'}
+               ];
+           }
            
            state.children.forEach(c => {
                if(c.totalPts === undefined) c.totalPts = c.pts || 0;
@@ -463,16 +487,38 @@
        const catOrder = { 'בוקר': 1, 'צהריים': 2, 'ערב': 3 };
        sortedTasks.sort((a,b) => (catOrder[a.category] || 999) - (catOrder[b.category] || 999));
        
-       document.getElementById('tasksList').innerHTML = sortedTasks.map(t => {
+       const SHOW_LIMIT = 5;
+       const visibleTasks = tasksExpanded ? sortedTasks : sortedTasks.slice(0, SHOW_LIMIT);
+       const hiddenTasksCount = sortedTasks.length - SHOW_LIMIT;
+       let tasksHTML = visibleTasks.map(t => {
            const isPending = (state.pendingApprovals || []).some(p => p.taskId === t.id && p.childId === child.id);
            return `<div class="list-item ${done.includes(t.id)?'completed':isPending?'pending':''}"><div><span style="font-size:1.6rem; margin-left:10px;">${t.icon||'✨'}</span><b>${t.name}</b><div style="font-size:0.7rem; opacity:0.6;">${t.category ? '🏷️ '+t.category : ''} (+${t.val}💎)</div></div><button class="btn-v ${done.includes(t.id)?'done':''} ${t.needsProof?'needs-camera':''} ${(t.vType && t.vType !== 'none') ? 'has-quiz' : ''} ${t.needsParentApproval?'needs-approval':''}" onclick="handleTaskClick(${t.id})">✓</button></div>`;
        }).join('');
+       if (sortedTasks.length > SHOW_LIMIT) {
+           if (!tasksExpanded) {
+               tasksHTML += `<button onclick="tasksExpanded=true;render();" style="width:100%;padding:12px;margin-top:8px;border-radius:15px;border:2px dashed var(--primary);background:transparent;color:var(--primary);font-weight:bold;cursor:pointer;font-size:0.95rem;">▼ הצג עוד (${hiddenTasksCount} משימות)</button>`;
+           } else {
+               tasksHTML += `<button onclick="tasksExpanded=false;render();" style="width:100%;padding:12px;margin-top:8px;border-radius:15px;border:2px dashed var(--primary);background:transparent;color:var(--primary);font-weight:bold;cursor:pointer;font-size:0.95rem;">▲ הצג פחות</button>`;
+           }
+       }
+       document.getElementById('tasksList').innerHTML = tasksHTML;
       
-       document.getElementById('rewardsList').innerHTML = (state.rewards||[]).filter(filterByOwner).map(r => `
+       const filteredRewards = (state.rewards||[]).filter(filterByOwner);
+       const visibleRewards = rewardsExpanded ? filteredRewards : filteredRewards.slice(0, SHOW_LIMIT);
+       const hiddenRewardsCount = filteredRewards.length - SHOW_LIMIT;
+       let rewardsHTML = visibleRewards.map(r => `
            <div class="list-item">
                <div><span style="font-size:1.5rem; margin-left:10px; cursor:pointer;" onclick="this.innerHTML=prompt('אימוגי חדש:', '${r.icon||'🎁'}')||'🎁';const idx=state.rewards.findIndex(x=>x.id===${r.id});if(idx>-1){state.rewards[idx].icon=this.innerHTML;save();render();}">${r.icon||'🎁'}</span><b>${r.name}</b> <br><small style="font-weight:bold; color:var(--special);">${r.val} 💎</small></div>
                <button onclick="buyReward(${r.id})" style="background:var(--loot); border:none; padding:10px 20px; border-radius:15px; font-weight:bold; color:#2d3436; cursor:pointer; box-shadow:0 4px 0 #d4ac0d;">פדה</button>
            </div>`).join('');
+       if (filteredRewards.length > SHOW_LIMIT) {
+           if (!rewardsExpanded) {
+               rewardsHTML += `<button onclick="rewardsExpanded=true;render();" style="width:100%;padding:12px;margin-top:8px;border-radius:15px;border:2px dashed var(--loot);background:transparent;color:var(--loot);font-weight:bold;cursor:pointer;font-size:0.95rem;">▼ הצג עוד (${hiddenRewardsCount} פרסים)</button>`;
+           } else {
+               rewardsHTML += `<button onclick="rewardsExpanded=false;render();" style="width:100%;padding:12px;margin-top:8px;border-radius:15px;border:2px dashed var(--loot);background:transparent;color:var(--loot);font-weight:bold;cursor:pointer;font-size:0.95rem;">▲ הצג פחות</button>`;
+           }
+       }
+       document.getElementById('rewardsList').innerHTML = rewardsHTML;
       
        document.getElementById('questsList').innerHTML = (state.quests||[]).filter(filterByOwner).map(q => `
            <div class="list-item" style="flex-direction:column; align-items:start;"><div style="width:100%; display:flex; justify-content:space-between;"><b>${q.icon||'🔥'} ${q.name}</b> <span>${q.current||0}/${q.steps}</span></div><div style="width:100%; height:10px; background:rgba(0,0,0,0.1); border-radius:5px; margin:8px 0; overflow:hidden;"><div style="width:${Math.min(((q.current||0)/q.steps)*100, 100)}%; height:100%; background:var(--special); border-radius:5px; transition:0.5s;"></div></div><button class="project-btn" onclick="advQuest(${q.id}, '${q.name}')">דיווח התקדמות +1</button></div>`).join('');
