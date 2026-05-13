@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="he" dir="rtl" class="manual-light">
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -374,6 +374,8 @@
            // Don't overwrite defaults with empty arrays from Firestore
            if (!data.tasks || data.tasks.length === 0) delete data.tasks;
            if (!data.rewards || data.rewards.length === 0) delete data.rewards;
+           // Don't let Firestore null override our light-mode default
+           if (data.darkMode === null || data.darkMode === undefined) delete data.darkMode;
            state = {...state, ...data};
            
            if (!state.availableAvatars || state.availableAvatars.length === 0) {
